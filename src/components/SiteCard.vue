@@ -1,13 +1,13 @@
 <template>
   <div
-    class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group"
+    class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-500 overflow-hidden group transform hover:scale-120"
   >
     <!-- 圖片 -->
     <div class="overflow-hidden">
       <img
         :src="image"
         :alt="title"
-        class="w-full h-48 object-cover transform group-hover:scale-105 transition duration-500"
+        class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500"
       />
     </div>
 
@@ -34,3 +34,7 @@ defineProps({
   link: String
 })
 </script>
+
+<style scoped>
+
+</style>

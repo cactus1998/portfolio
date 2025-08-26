@@ -1,8 +1,10 @@
+import logo from "../assets/logo.png";
+
 export const sites = [
   {
-    title: "網站 A",
-    description: "這是網站 A 的簡介",
-    image: "https://via.placeholder.com/600x400?text=Site+A",
+    title: "樂咖大物輪",
+    description: "純手工鋁製前打輪形象網站",
+    image: logo,
     link: "https://example.com"
   },
   {
