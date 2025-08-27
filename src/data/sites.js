@@ -5,7 +5,7 @@ export const sites = [
     title: "樂咖大物輪",
     description: "純手工鋁製前打輪形象網站",
     image: logo,
-    link: "https://example.com"
+    link: "https://yoake1.tw/fishing-reel/"
   },
   {
     title: "網站 B",
