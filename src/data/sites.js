@@ -1,4 +1,5 @@
 import logo from "../assets/logo.png";
+import reactGame01 from "../assets/reactGame01.png";
 
 export const sites = [
   {
@@ -8,10 +9,10 @@ export const sites = [
     link: "https://yoake1.tw/fishing-reel/"
   },
   {
-    title: "網站 B",
-    description: "這是網站 B 的簡介",
-    image: "https://via.placeholder.com/600x400?text=Site+B",
-    link: "https://example.com"
+    title: "react-game-tic-tac-toe",
+    description: "React課程上的OOXX小遊戲",
+    image: reactGame01,
+    link: "https://yoake1.tw/react-game-tic-tac-toe/"
   },
   {
     title: "網站 C",
