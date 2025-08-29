@@ -3,11 +3,11 @@
     class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-500 overflow-hidden group transform hover:scale-120"
   >
     <!-- 圖片 -->
-    <div class="overflow-hidden">
+    <div class="overflow-hidden p-4">
       <img
         :src="image"
         :alt="title"
-        class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500"
+        class="w-full h-64 border-spacing-2 object-contain transform group-hover:scale-105 transition duration-500"
       />
     </div>
 

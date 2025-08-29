@@ -1,5 +1,6 @@
 import logo from "../assets/logo.png";
 import reactGame01 from "../assets/reactGame01.png";
+import stone from "../assets/stone.jpg";
 
 export const sites = [
   {
@@ -15,9 +16,9 @@ export const sites = [
     link: "https://yoake1.tw/react-game-tic-tac-toe/"
   },
   {
-    title: "網站 C",
-    description: "這是網站 C 的簡介",
-    image: "https://via.placeholder.com/600x400?text=Site+C",
-    link: "https://example.com"
+    title: "遊藝新境鐵丸石藝",
+    description: "遊藝新境鐵丸石藝形象網站",
+    image: stone,
+    link: "https://yoake1.tw/yoyi/"
   }
 ]
