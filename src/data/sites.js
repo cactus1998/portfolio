@@ -20,5 +20,11 @@ export const sites = [
     description: "遊藝新境鐵丸石藝形象網站",
     image: stone,
     link: "https://yoake1.tw/yoyi/"
-  }
+  },
+  {
+    title: "樂咖大物輪 購物車",
+    description: "線上購物車系統 有後端",
+    image: logo,
+    link: "https://yoake1.tw/fishing-shop/"
+  },
 ]
