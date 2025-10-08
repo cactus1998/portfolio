@@ -1,8 +1,15 @@
 import logo from "../assets/logo.png";
 import reactGame01 from "../assets/reactGame01.png";
 import stone from "../assets/stone.jpg";
+import wrench from "../assets/wrench.png";
 
 export const sites = [
+  {
+    title: "投資筆記",
+    description: "施工中",
+    image: wrench,
+    link: "https://yoake1.tw/transaction-records/"
+  },
   {
     title: "樂咖大物輪",
     description: "純手工鋁製前打輪形象網站",
