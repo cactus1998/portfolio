@@ -8,36 +8,42 @@ export const sites = [
     title: "投資筆記",
     description: "施工中 可使用帳密 admin01 / admin01 登入測試",
     image: wrench,
-    link: "https://yoake1.tw/transaction-records/"
+    link: "https://yoake1.tw/transaction-records/",
+    techStack: ["Vue 3", "Firebase", "Tailwind CSS"]
   },
   {
     title: "樂咖大物輪",
     description: "純手工鋁製前打輪形象網站",
     image: logo,
-    link: "https://yoake1.tw/fishing-reel/"
+    link: "https://yoake1.tw/fishing-reel/",
+    techStack: ["Vue 3", "Vite", "SCSS" , "element-plus" , "tailwind" , "GSAP" , "aos", "vue-awesome-swiper" , "vue3-table-lite" , "webpack" , "i18n" , "vercel"]
   },
   {
     title: "樂咖大物輪 購物車",
-    description: "線上購物車系統 有後端",
+    description: "線上購物車系統",
     image: logo,
-    link: "https://yoake1.tw/fishing-shop/"
+    link: "https://yoake1.tw/fishing-shop/",
+    techStack: ["Vue 3", "SCSS" , "element-plus" , "tailwind" , "Pinia" , "SweetAlert2", "firebase" , "webpack" , "vercel"]
   },
   {
     title: "樂咖大物輪 購物車後台",
-    description: "線上購物車系統後台 須第三方登入",
+    description: "線上購物車系統後台，須第三方登入",
     image: logo,
-    link: "https://yoake1.tw/fishing-shop-backstage/"
+    link: "https://yoake1.tw/fishing-shop-backstage/",
+    techStack: ["Vue 3", "Vite" , "element-plus" , "tailwind" , "Pinia" , "firebase" , "webpack" , "vercel"]
   },
   {
     title: "react-game-tic-tac-toe",
     description: "React課程上的OOXX小遊戲",
     image: reactGame01,
-    link: "https://yoake1.tw/react-game-tic-tac-toe/"
+    link: "https://yoake1.tw/react-game-tic-tac-toe/",
+    techStack: ["React"]
   },
   {
     title: "遊藝新境鐵丸石藝",
     description: "遊藝新境鐵丸石藝形象網站",
     image: stone,
-    link: "https://yoake1.tw/yoyi/"
+    link: "https://yoake1.tw/yoyi/",
+    techStack: ["JS", "emailjs", "CSS ", "github pages", "Swiper"]
   },
-]
+];

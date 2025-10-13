@@ -1,23 +1,26 @@
 <!-- components/HeroSection.vue -->
 <template>
-  <section class="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-300 via-purple-50 to-blue-300 relative overflow-hidden">
+  <section class="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-300 via-purple-50 to-blue-300 relative overflow-hidden p-4">
     <!-- Canvas 雪花背景 -->
     <canvas ref="snowCanvas" class="absolute inset-0 w-full h-full"></canvas>
     
     <!-- 內容 -->
     <div class="max-w-4xl text-center px-6 relative z-10">
       <div class="mb-8">
-        <div ref="avatarRef" class="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mx-auto mb-6 opacity-0 scale-0"></div>
+        <div ref="avatarRef" class="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mx-auto mb-6 opacity-0 scale-0"></div>
       </div>
-      <h1 ref="titleRef" class="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+      
+      <h1 ref="titleRef" class="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
         <span ref="titleTextRef"></span><span ref="titleSpanRef" class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600"></span>
       </h1>
-      <p ref="descRef" class="text-xl text-gray-600 mb-8 leading-relaxed"></p>
-      <div ref="buttonsRef" class="flex gap-4 justify-center opacity-0">
-        <a href="#projects" class="px-8 py-3 border-2 bg-black text-white rounded-full hover:bg-transparent hover:text-black hover:border-black hover:border-2 transition duration-300">
+      
+      <p ref="descRef" class="text-base sm:text-lg md:text-xl text-gray-600 mb-8 leading-relaxed"></p>
+      
+      <div ref="buttonsRef" class="flex flex-col sm:flex-row gap-4 justify-center opacity-0">
+        <a href="#projects" class="w-full sm:w-auto px-8 py-3 border-2 bg-black text-white rounded-full hover:bg-transparent hover:text-black hover:border-black hover:border-2 transition duration-300">
           查看作品
         </a>
-        <a href="#skills" class="px-8 py-3 border-2 border-black text-black rounded-full hover:bg-black hover:text-white transition duration-300">
+        <a href="#skills" class="w-full sm:w-auto px-8 py-3 border-2 border-black text-black rounded-full hover:bg-black hover:text-white transition duration-300">
           技能介紹
         </a>
       </div>
@@ -188,24 +191,24 @@ const initTextAnimation = () => {
   
   // 1. 標題第一部分：「Hello, 我是 」
   .to(titleTextRef.value, {
-    duration: 1.5,
+    duration: 1,
     text: 'Hello, 我是 ',
     ease: 'none',
   }, '-=0.3') // 在頭像動畫快結束時開始
   
   // 2. 標題第二部分（漸變文字）：「邦晉」- 同時開始
   .to(titleSpanRef.value, {
-    duration: 1,
+    duration: 0.5,
     text: '邦晉',
     ease: 'none',
   }, '-=0.3') // '<' 表示與上一個動畫同時開始
   
   // 3. 描述段落（分兩行）
   .to(descRef.value, {
-    duration: 4,
+    duration: 3,
     text: '熱愛創造優雅的網頁體驗，專注於前端開發與使用者介面設計。\n用程式碼實現創意，讓每個專案都充滿生命力。',
     ease: 'none',
-  }, '-=0.5')
+  }, '-=0.3')
   
   // 4. 按鈕淡入
   .to(buttonsRef.value, {
