@@ -14,7 +14,7 @@
       </h1>
       <p ref="descRef" class="text-xl text-gray-600 mb-8 leading-relaxed"></p>
       <div ref="buttonsRef" class="flex gap-4 justify-center opacity-0">
-        <a href="#projects" class="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300">
+        <a href="#projects" class="px-8 py-3 border-2 bg-black text-white rounded-full hover:bg-transparent hover:text-black hover:border-black hover:border-2 transition duration-300">
           查看作品
         </a>
         <a href="#skills" class="px-8 py-3 border-2 border-black text-black rounded-full hover:bg-black hover:text-white transition duration-300">
