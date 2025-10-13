@@ -6,7 +6,7 @@ import wrench from "../assets/wrench.png";
 export const sites = [
   {
     title: "投資筆記",
-    description: "施工中",
+    description: "施工中 可使用帳密 admin01 / admin01 登入測試",
     image: wrench,
     link: "https://yoake1.tw/transaction-records/"
   },
