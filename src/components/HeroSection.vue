@@ -205,7 +205,7 @@ const initTextAnimation = () => {
   
   // 3. 描述段落（分兩行）
   .to(descRef.value, {
-    duration: 3,
+    duration: 2,
     text: '熱愛創造優雅的網頁體驗，專注於前端開發與使用者介面設計。\n用程式碼實現創意，讓每個專案都充滿生命力。',
     ease: 'none',
   }, '-=0.3')
@@ -216,7 +216,7 @@ const initTextAnimation = () => {
     opacity: 1,
     y: 0,
     ease: 'back.out(1.7)',
-  }, '-=0.8')
+  }, '-=0.5')
 }
 
 // ========== Vue 生命週期 ==========

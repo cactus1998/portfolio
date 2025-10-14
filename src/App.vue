@@ -1,6 +1,5 @@
-<!-- App.vue -->
 <template>
-  <div class="min-h-screen bg-white">
+  <div class="min-h-screen bg-white no-scrollbar">
     <HeroSection />
     <ProjectSection />
     <SkillSection />
@@ -16,4 +15,7 @@ import FooterSection from './components/FooterSection.vue'
 </script>
 
 <style scoped>
+.no-scrollbar {
+  overflow-x: hidden;
+}
 </style>
