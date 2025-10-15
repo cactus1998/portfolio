@@ -30,7 +30,6 @@ export const skillBlocks = [
       { tags: ['MS SQL'] },
       { tags: ['MySQL'] },
       { tags: ['Firebase'] },
-      { tags: ['C#'] }
     ]
   },
   {

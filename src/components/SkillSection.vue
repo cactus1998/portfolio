@@ -97,8 +97,8 @@ onMounted(async () => {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: card,
-        start: 'top+=200 bottom', // 延遲 150px 觸發
-        end: 'bottom-=200 top',
+        start: 'top+=150 bottom', // 延遲 150px 觸發
+        end: 'bottom-=150 top',
         toggleActions: 'play reverse play reverse',
         onEnter: () => {
           gsap.fromTo(
