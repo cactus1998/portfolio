@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-white no-scrollbar">
-    <HeroSection />
+    <FirstSection />
     <ProjectSection />
     <SkillSection />
     <FooterSection />
@@ -8,10 +8,10 @@
 </template>
 
 <script setup>
-import HeroSection from './components/HeroSection.vue'
-import ProjectSection from './components/ProjectSection.vue'
-import SkillSection from './components/SkillSection.vue'
-import FooterSection from './components/FooterSection.vue'
+import FirstSection from "./components/FirstSection.vue";
+import ProjectSection from "./components/ProjectSection.vue";
+import SkillSection from "./components/SkillSection.vue";
+import FooterSection from "./components/FooterSection.vue";
 </script>
 
 <style scoped>

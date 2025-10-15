@@ -25,7 +25,7 @@
           </div>
         </div>
         <div class="border-t border-gray-700 pt-6 text-gray-400">
-          <p>© 2025 Designed & Developed by [Your Name].</p>
+          <p>© 2025 Designed & Developed by ME.</p>
         </div>
       </div>
     </div>
@@ -420,8 +420,9 @@ function handleResize() {
   const canvas = canvasRef.value;
   if (!canvas || !camera || !renderer) return; // 確保所有物件都已初始化
   
-  const width = canvas.offsetWidth;
-  const height = canvas.offsetHeight;
+  // 強制瀏覽器重新計算佈局
+  const width = canvas.parentElement.clientWidth;
+  const height = canvas.parentElement.clientHeight;
 
   // 更新相機長寬比
   camera.aspect = width / height;
