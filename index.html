@@ -2,11 +2,86 @@
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>我的專案集</title>
+    <title>作品集</title>
+    <style>
+      /* 簡化版 Loading 畫面 */
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        background: #fff5f5;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+      }
+
+      #app-loading.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      /* 簡化文字 */
+      .loading-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 16px;
+        font-family: "Helvetica Neue", sans-serif;
+      }
+
+      /* 簡化旋轉圈 */
+      .loading-spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid #fee2e2;
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 隱藏主應用在載入時 */
+      #app {
+        opacity: 0;
+        transition: opacity 0.4s ease;
+      }
+
+      #app.loaded {
+        opacity: 1;
+      }
+    </style>
   </head>
-  <body class="bg-gray-50">
+  <body>
+    <!-- Loading 畫面 -->
+    <div id="app-loading">
+      <h1 class="loading-title">Loading...</h1>
+      <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 主應用 -->
     <div id="app"></div>
+
     <script type="module" src="/src/main.js"></script>
+    <script>
+      window.addEventListener("load", () => {
+        const loading = document.getElementById("app-loading");
+        const app = document.getElementById("app");
+
+        if (loading && app) {
+          loading.classList.add("hidden");
+          app.classList.add("loaded");
+          setTimeout(() => loading.remove(), 400);
+        }
+      });
+    </script>
   </body>
 </html>

@@ -33,8 +33,4 @@ import { sites } from '../data/sites'
 </script>
 
 <style scoped>
-section {
-  /* 平面與陰影融合感 */
-  box-shadow: inset 8px 8px 16px #d1d9e6, inset -8px -8px 16px #ffffff;
-}
 </style>
