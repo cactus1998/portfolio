@@ -72,7 +72,6 @@ const cardRefs = ref([])
 onMounted(async () => {
   await nextTick()
 
-  // 四個方向（順時鐘）
   const directions = [
     { x: -80, y: -80 }, // 左上
     { x: 80, y: -80 },  // 右上
@@ -80,7 +79,6 @@ onMounted(async () => {
     { x: -80, y: 80 }   // 左下
   ]
 
-  // 逆時鐘離場方向
   const exitDirections = [
     { x: -80, y: 80 },  // 左下
     { x: -80, y: -80 }, // 左上
@@ -88,67 +86,62 @@ onMounted(async () => {
     { x: 80, y: 80 }    // 右下
   ]
 
-  // 為每一張卡片建立獨立 ScrollTrigger
   cardRefs.value.forEach((card, i) => {
     const enterDir = directions[i % directions.length]
     const exitDir = exitDirections[i % exitDirections.length]
+    
+    // 追蹤卡片目前狀態
+    let state = 'hidden' // hidden, visible
+    let tween = null
 
-    // 進場動畫
-    const tl = gsap.timeline({
+    const playEnter = () => {
+      if (state === 'visible') return
+      
+      gsap.killTweensOf(card)
+      state = 'visible'
+      
+      gsap.fromTo(
+        card,
+        { opacity: 0, x: enterDir.x, y: enterDir.y },
+        {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          duration: 1.3,
+          ease: 'power3.out'
+        }
+      )
+    }
+
+    const playExit = () => {
+      if (state === 'hidden') return
+      
+      gsap.killTweensOf(card)
+      state = 'hidden'
+      
+      gsap.to(card, {
+        opacity: 0,
+        x: exitDir.x * 0.5,
+        y: exitDir.y * 0.5,
+        duration: 0.5,
+        ease: 'power2.in'
+      })
+    }
+
+    gsap.timeline({
       scrollTrigger: {
         trigger: card,
-        start: 'top+=150 bottom', // 延遲 150px 觸發
-        end: 'bottom-=150 top',
-        toggleActions: 'play reverse play reverse',
-        onEnter: () => {
-          gsap.fromTo(
-            card,
-            { opacity: 0, x: enterDir.x, y: enterDir.y },
-            {
-              opacity: 1,
-              x: 0,
-              y: 0,
-              duration: 1.3,
-              ease: 'power3.out'
-            }
-          )
-        },
-        onLeave: () => {
-          gsap.to(card, {
-            opacity: 0,
-            x: exitDir.x * 0.5,
-            y: exitDir.y * 0.5,
-            duration: 0.5,
-            ease: 'power2.in'
-          })
-        },
-        onEnterBack: () => {
-          gsap.fromTo(
-            card,
-            { opacity: 0, x: enterDir.x, y: enterDir.y },
-            {
-              opacity: 1,
-              x: 0,
-              y: 0,
-              duration: 1.3,
-              ease: 'power3.out'
-            }
-          )
-        },
-        onLeaveBack: () => {
-          gsap.to(card, {
-            opacity: 0,
-            x: exitDir.x * 0.5,
-            y: exitDir.y * 0.5,
-            duration: 1.2,
-            ease: 'power2.in'
-          })
-        }
+        start: 'top+=100 bottom',
+        end: 'bottom-=100 top',
+        toggleActions: 'none none none none',
+        onEnter: playEnter,
+        onLeave: playExit,
+        onEnterBack: playEnter,
+        onLeaveBack: playExit
       }
     })
   })
 })
-
 onUnmounted(() => {
   ScrollTrigger.getAll().forEach(trigger => trigger.kill())
 })
