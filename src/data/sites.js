@@ -16,14 +16,14 @@ export const sites = [
     description: "純手工鋁製前打輪形象網站",
     image: logo,
     link: "https://yoake1.tw/fishing-reel/",
-    techStack: ["Vue 3", "Vite", "SCSS" , "element-plus" , "tailwind" , "GSAP" , "aos", "vue-awesome-swiper" , "vue3-table-lite" , "webpack" , "i18n" , "vercel"]
+    techStack: ["Vue 3", "Vite" , "element-plus" , "tailwind" , "GSAP" , "aos", "vue-awesome-swiper" , "vue3-table-lite" , "webpack" , "i18n" , "vercel"]
   },
   {
     title: "樂咖大物輪 購物車",
     description: "線上購物車系統",
     image: logo,
     link: "https://yoake1.tw/fishing-shop/",
-    techStack: ["Vue 3", "SCSS" , "element-plus" , "tailwind" , "Pinia" , "SweetAlert2", "firebase" , "webpack" , "vercel"]
+    techStack: ["Vue 3" , "element-plus" , "tailwind" , "Pinia" , "SweetAlert2", "firebase" , "webpack" , "vercel"]
   },
   {
     title: "樂咖大物輪 購物車後台",
