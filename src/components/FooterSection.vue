@@ -25,7 +25,7 @@
           </div>
         </div>
         <div class="border-t border-gray-700 pt-6 text-gray-400">
-          <p>© 2025 Designed & Developed by ME.</p>
+          <p>© 2025 Designed & Developed by Ben.</p>
         </div>
       </div>
     </div>
