@@ -9,7 +9,7 @@ export const sites = [
     description: "施工中 可使用帳密 admin01 / admin01 登入測試",
     image: wrench,
     link: "https://yoake1.tw/transaction-records/",
-    techStack: ["Vue 3", "Firebase", "Tailwind CSS", "echarts"]
+    techStack: ["Vue 3", "vite" , "bcryptjs", "jsonwebtoken", "Firebase", "Tailwind CSS", "echarts"]
   },
   {
     title: "樂咖大物輪",
