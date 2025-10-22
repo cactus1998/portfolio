@@ -20,14 +20,14 @@ export const sites = [
   },
   {
     title: "樂咖大物輪 購物車",
-    description: "線上購物車系統",
+    description: "線上購物車系統，只做為展示用，不提供實際交易",
     image: logo,
     link: "https://yoake1.tw/fishing-shop/",
     techStack: ["Vue 3" , "element-plus" , "tailwind" , "Pinia" , "SweetAlert2", "firebase" , "webpack" , "vercel"]
   },
   {
     title: "樂咖大物輪 購物車後台",
-    description: "線上購物車系統後台，須第三方登入",
+    description: "線上購物車系統後台，須第三方登入，只做為展示用",
     image: logo,
     link: "https://yoake1.tw/fishing-shop-backstage/",
     techStack: ["Vue 3", "Vite" , "element-plus" , "tailwind" , "Pinia" , "firebase" , "webpack" , "vercel"]
