@@ -61,92 +61,82 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { skillBlocks } from '../data/skills'
 
-gsap.registerPlugin(ScrollTrigger)
-
-const skillsGrid = ref(null)
 const cardRefs = ref([])
 
 onMounted(async () => {
   await nextTick()
 
   const directions = [
-    { x: -80, y: -80 }, // 左上
-    { x: 80, y: -80 },  // 右上
-    { x: 80, y: 80 },   // 右下
-    { x: -80, y: 80 }   // 左下
+    { x: -80, y: -80 },
+    { x: 80, y: -80 },
+    { x: 80, y: 80 },
+    { x: -80, y: 80 }
   ]
 
   const exitDirections = [
-    { x: -80, y: 80 },  // 左下
-    { x: -80, y: -80 }, // 左上
-    { x: 80, y: -80 },  // 右上
-    { x: 80, y: 80 }    // 右下
+    { x: -80, y: 80 },
+    { x: -80, y: -80 },
+    { x: 80, y: -80 },
+    { x: 80, y: 80 }
   ]
 
-  cardRefs.value.forEach((card, i) => {
-    const enterDir = directions[i % directions.length]
-    const exitDir = exitDirections[i % exitDirections.length]
-    
-    // 追蹤卡片目前狀態
-    let state = 'hidden' // hidden, visible
-    let tween = null
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry, index) => {
+        const card = entry.target
+        const i = cardRefs.value.indexOf(card)
+        const enterDir = directions[i % directions.length]
+        const exitDir = exitDirections[i % exitDirections.length]
 
-    const playEnter = () => {
-      if (state === 'visible') return
-      
-      gsap.killTweensOf(card)
-      state = 'visible'
-      
-      gsap.fromTo(
-        card,
-        { opacity: 0, x: enterDir.x, y: enterDir.y },
-        {
-          opacity: 1,
-          x: 0,
-          y: 0,
-          duration: 1.3,
-          ease: 'power3.out'
+        if (entry.isIntersecting) {
+          // 進入視窗
+          gsap.killTweensOf(card)
+          gsap.fromTo(
+            card,
+            { opacity: 0, x: enterDir.x, y: enterDir.y },
+            {
+              opacity: 1,
+              x: 0,
+              y: 0,
+              duration: 1.3,
+              ease: 'power3.out'
+            }
+          )
+        } else {
+          // 離開視窗
+          gsap.killTweensOf(card)
+          gsap.to(card, {
+            opacity: 0,
+            x: exitDir.x * 0.5,
+            y: exitDir.y * 0.5,
+            duration: 0.5,
+            ease: 'power2.in'
+          })
         }
-      )
-    }
-
-    const playExit = () => {
-      if (state === 'hidden') return
-      
-      gsap.killTweensOf(card)
-      state = 'hidden'
-      
-      gsap.to(card, {
-        opacity: 0,
-        x: exitDir.x * 0.5,
-        y: exitDir.y * 0.5,
-        duration: 0.5,
-        ease: 'power2.in'
       })
+    },
+    {
+      threshold: 0.1,
+      rootMargin: '-100px 0px -100px 0px'
     }
+  )
 
-    gsap.timeline({
-      scrollTrigger: {
-        trigger: card,
-        start: 'top+=100 bottom',
-        end: 'bottom-=100 top',
-        toggleActions: 'none none none none',
-        onEnter: playEnter,
-        onLeave: playExit,
-        onEnterBack: playEnter,
-        onLeaveBack: playExit
-      }
-    })
+  cardRefs.value.forEach(card => {
+    if (card) observer.observe(card)
   })
+
+  // 儲存 observer 以便清理
+  window.skillsObserver = observer
 })
+
 onUnmounted(() => {
-  ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+  if (window.skillsObserver) {
+    window.skillsObserver.disconnect()
+  }
 })
 </script>
-
 <style scoped>
 .skill-card {
   opacity: 0;
