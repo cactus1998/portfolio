@@ -1,5 +1,6 @@
 import logo from "../assets/logo.png";
 import reactGame01 from "../assets/reactGame01.png";
+import sky01 from "../assets/sky01.jpg";
 import stone from "../assets/stone.jpg";
 import wrench from "../assets/wrench.png";
 
@@ -38,6 +39,13 @@ export const sites = [
     image: reactGame01,
     link: "https://yoake1.tw/react-game-tic-tac-toe/",
     techStack: ["React"]
+  },
+  {
+    title: "sky-photo-wall",
+    description: "sky照片牆",
+    image: sky01,
+    link: "https://yoake1.tw/sky-photo-wall/",
+    techStack: ["Vue 3" , "Tailwind CSS","GSAP","threejs"]
   },
   {
     title: "遊藝新境鐵丸石藝",

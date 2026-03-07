@@ -33,7 +33,7 @@
           class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600"
         ></span>
       </h1>
-
+ 
       <p
         ref="descRef"
         class="text-base sm:text-lg md:text-xl text-gray-600 mb-8 leading-relaxed"
