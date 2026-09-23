@@ -18,6 +18,8 @@
       <img
         :src="image"
         :alt="title"
+        loading="lazy"
+        decoding="async"
         class="w-full h-56 object-contain p-4 transition-all duration-700 
                transform group-hover:rotate-3"
       />
@@ -64,6 +66,7 @@
       <a
         :href="link"
         target="_blank"
+        rel="noopener noreferrer"
         class="mt-auto inline-flex items-center justify-center w-full px-6 py-3 
                bg-gray-800 text-white font-medium rounded-full
                hover:bg-indigo-800 hover:text-white active:scale-95
@@ -92,12 +95,6 @@ defineProps({
 </script>
 
 <style scoped>
-/* 確保動畫流暢 */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 /* 自定義滾動條樣式 */
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
@@ -111,19 +108,5 @@ defineProps({
 .scrollbar-track-transparent::-webkit-scrollbar-track {
   background-color: transparent;
 }
-
-/* 行數限制 */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+/* 行數限制使用 Tailwind 內建的 line-clamp-2 / line-clamp-3 */
 </style>

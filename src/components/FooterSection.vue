@@ -1,5 +1,5 @@
 <template>
-  <footer class="relative bg-gray-900 h-[650px] text-white overflow-hidden">
+  <footer ref="footerRef" class="relative bg-gray-900 h-[650px] text-white overflow-hidden">
     <!-- Three.js Canvas 背景 -->
     <canvas ref="canvasRef" class="absolute inset-0 w-full h-full"></canvas>
 
@@ -19,13 +19,18 @@
             <h3 class="text-2xl font-bold mb-4">聯絡方式</h3>
             <ul class="space-y-2 text-gray-300">
               <li>
-                  s770880qq@gmail.com
+                <a
+                  :href="`mailto:${EMAIL}`"
+                  class="font-normal text-gray-300 hover:text-white transition-colors"
+                >
+                  {{ EMAIL }}
+                </a>
               </li>
             </ul>
           </div>
         </div>
         <div class="border-t border-gray-700 pt-6 text-gray-400">
-          <p>© 2025 Designed & Developed by Ben.</p>
+          <p>© {{ copyrightYears }} Designed & Developed by Ben.</p>
         </div>
       </div>
     </div>
@@ -34,12 +39,20 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import * as THREE from 'three';
+import { whenAppLoaded } from '../utils/appLoaded';
+
+const EMAIL = 's770880qq@gmail.com';
+const START_YEAR = 2025;
+const currentYear = new Date().getFullYear();
+const copyrightYears = currentYear > START_YEAR ? `${START_YEAR}-${currentYear}` : `${START_YEAR}`;
 
 // === Vue 響應式變數 ===
 const canvasRef = ref(null); // Canvas DOM 元素引用
+const footerRef = ref(null); // Footer DOM 元素引用
 
 // === Three.js 核心物件 ===
+// three.js 體積大，改為動態載入，不影響首屏
+let THREE;        // 動態載入的 three 模組
 let scene;        // 場景：所有 3D 物件的容器
 let camera;       // 相機：定義觀察視角
 let renderer;     // 渲染器：將場景渲染到 Canvas 上
@@ -51,49 +64,127 @@ let trails = [];  // 存儲三個天體的軌跡線條
 
 // === 三體初始參數 ===
 const bodyParams = [
-  { 
-    position: new THREE.Vector3(5, 0, 0),  // 初始位置 (x, y, z)
-    velocity: new THREE.Vector3(0, 0.1, 1), // 初始速度向量
-    color: 0x00ffff,                        // 顏色：青色 (十六進制)
-    mass: 30                               // 質量：用於引力計算
+  {
+    position: [5, 0, 0],   // 初始位置 (x, y, z)
+    velocity: [0, 0.1, 1], // 初始速度向量
+    color: 0x00ffff,       // 顏色：青色 (十六進制)
+    mass: 30               // 質量：用於引力計算
   },
-  { 
-    position: new THREE.Vector3(-5, 0, 0), 
-    velocity: new THREE.Vector3(0, 0.5, -2),
-    color: 0xff6b6b,                        // 顏色：紅色
+  {
+    position: [-5, 0, 0],
+    velocity: [0, 0.5, -2],
+    color: 0xff6b6b,       // 顏色：紅色
     mass: 3
   },
-  { 
-    position: new THREE.Vector3(0, 5, 0), 
-    velocity: new THREE.Vector3(-2, 0, 0),
-    color: 0xffd93d,                        // 顏色：黃色
+  {
+    position: [0, 5, 0],
+    velocity: [-2, 0, 0],
+    color: 0xffd93d,       // 顏色：黃色
     mass: 2
   }
 ];
 
 // === 物理模擬參數 ===
-const G = 1;           // 引力常數：控制引力強度（值越大引力越強）
-const dt = 0.048;        // 時間步長：約 60fps (1/60 秒)
+const G = 1;             // 引力常數：控制引力強度（值越大引力越強）
+const dt = 0.048;        // 每一步模擬的時間步長
+const STEP_MS = 1000 / 60; // 固定每 1/60 秒模擬一步，高更新率螢幕也不會變快
+const MAX_FRAME_MS = 100;  // 單幀最大補償時間，避免切回分頁時一次模擬太多步
 const BOUNDARY = 17;     // 邊界範圍：天體活動的最大半徑
-const DAMPING = 0.5;    // 邊界反彈阻尼：能量損失係數（<1 表示反彈時損失能量）
+const DAMPING = 0.5;     // 邊界反彈阻尼：能量損失係數（<1 表示反彈時損失能量）
+const TRAIL_LENGTH = 400; // 軌跡最多保留的點數
+
+// === 重複使用的暫存向量，避免每幀建立新物件 ===
+let tempDiff;
+let tempVec;
+let forces = [];
+
+// === 狀態 ===
+let initPromise = null;
+let isVisible = false;
+let lastTime = 0;
+let accumulator = 0;
+let visibilityObserver = null;
+let idleId = null;
+let unmounted = false;
 
 // === Vue 生命週期 ===
 onMounted(() => {
-  initThree();  // 初始化 Three.js
-  animate();    // 開始動畫循環
+  // Footer 接近畫面時才初始化並執行動畫，離開畫面就暫停
+  visibilityObserver = new IntersectionObserver(
+    ([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible) {
+        ensureInit().then(start);
+      } else {
+        stop();
+      }
+    },
+    { rootMargin: '200px 0px' }
+  );
+  visibilityObserver.observe(footerRef.value);
+
+  // 頁面載入完成後，利用瀏覽器閒置時間預先載入 three.js
+  whenAppLoaded().then(() => {
+    if (unmounted) return;
+    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+    idleId = idle(() => ensureInit());
+  });
+
   window.addEventListener('resize', handleResize); // 監聽視窗大小變化
 });
 
 onUnmounted(() => {
   // 清理資源，防止記憶體洩漏
+  unmounted = true;
   window.removeEventListener('resize', handleResize);
-  if (animationId) {
-    cancelAnimationFrame(animationId); // 取消動畫循環
+  visibilityObserver?.disconnect();
+  if (idleId) (window.cancelIdleCallback || clearTimeout)(idleId);
+  stop();
+
+  if (scene) {
+    // 釋放所有幾何體與材質
+    scene.traverse((obj) => {
+      obj.geometry?.dispose();
+      obj.material?.dispose();
+    });
   }
   if (renderer) {
     renderer.dispose(); // 釋放 WebGL 資源
   }
 });
+
+/**
+ * 動態載入 three.js 並初始化場景（只執行一次）
+ */
+function ensureInit() {
+  if (!initPromise) {
+    initPromise = import('three').then((module) => {
+      if (unmounted) return;
+      THREE = module;
+      initThree();
+    });
+  }
+  return initPromise;
+}
+
+/**
+ * 開始動畫循環
+ */
+function start() {
+  if (unmounted || !isVisible || !renderer || animationId) return;
+  lastTime = performance.now();
+  animationId = requestAnimationFrame(animate);
+}
+
+/**
+ * 暫停動畫循環
+ */
+function stop() {
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+}
 
 /**
  * 初始化 Three.js 場景
@@ -102,6 +193,9 @@ function initThree() {
   const canvas = canvasRef.value;
   const width = canvas.offsetWidth;   // Canvas 寬度
   const height = canvas.offsetHeight; // Canvas 高度
+
+  tempDiff = new THREE.Vector3();
+  tempVec = new THREE.Vector3();
 
   // === 創建場景 ===
   scene = new THREE.Scene();
@@ -122,7 +216,7 @@ function initThree() {
   camera.lookAt(0, 0, 0);
 
   // === 創建 WebGL 渲染器 ===
-  renderer = new THREE.WebGLRenderer({ 
+  renderer = new THREE.WebGLRenderer({
     canvas,           // 指定 Canvas 元素
     antialias: true,  // 啟用抗鋸齒，讓邊緣更平滑
     alpha: true       // 啟用透明背景
@@ -135,69 +229,57 @@ function initThree() {
   // 添加星空背景
   addStars();
 
+  // === 三個天體共用的幾何體 ===
+  // SphereGeometry(半徑, 水平分段數, 垂直分段數)
+  // 分段數越高，球體越圓滑，但性能消耗越大
+  const bodyGeometry = new THREE.SphereGeometry(0.6, 18, 18);
+  // 三層光暈：由小而亮到大而淡，模擬星體輻射
+  const glowLayers = [
+    { geometry: new THREE.SphereGeometry(1.0, 32, 32), opacity: 0.5 },
+    { geometry: new THREE.SphereGeometry(1.6, 32, 32), opacity: 0.2 },
+    { geometry: new THREE.SphereGeometry(2.4, 32, 32), opacity: 0.06 }
+  ];
+
   // === 創建三個天體 ===
-  bodyParams.forEach((params, index) => {
+  bodyParams.forEach((params) => {
     // --- 主體球體 ---
-    // SphereGeometry(半徑, 水平分段數, 垂直分段數)
-    // 分段數越高，球體越圓滑，但性能消耗越大
-    const geometry = new THREE.SphereGeometry(0.6, 18, 18);
-    
     // MeshBasicMaterial：基礎材質，不受光照影響
-    const material = new THREE.MeshBasicMaterial({ 
+    const material = new THREE.MeshBasicMaterial({
       color: params.color  // 設定顏色
     });
-    
+
     // 創建網格物件（Geometry + Material）
-    const mesh = new THREE.Mesh(geometry, material);
-    
+    const mesh = new THREE.Mesh(bodyGeometry, material);
+
     // 設定初始位置
-    mesh.position.copy(params.position);
+    mesh.position.fromArray(params.position);
     // 將網格添加到場景中
     scene.add(mesh);
 
-    // --- 第一層光暈（較亮、較小）---
-    const glow1Geometry = new THREE.SphereGeometry(1.0, 32, 32);
-    const glow1Material = new THREE.MeshBasicMaterial({
-      color: params.color,
-      transparent: true,            // 啟用透明度
-      opacity: 0.5,                // 不透明度 (0-1)
-      blending: THREE.AdditiveBlending, // 加法混合：顏色相加，產生發光效果
-      depthWrite: false             // 禁用深度寫入，避免遮擋其他透明物體
+    // --- 光暈 ---
+    glowLayers.forEach(({ geometry, opacity }) => {
+      const glowMaterial = new THREE.MeshBasicMaterial({
+        color: params.color,
+        transparent: true,                // 啟用透明度
+        opacity,                          // 不透明度 (0-1)
+        blending: THREE.AdditiveBlending, // 加法混合：顏色相加，產生發光效果
+        depthWrite: false                 // 禁用深度寫入，避免遮擋其他透明物體
+      });
+      const glow = new THREE.Mesh(geometry, glowMaterial);
+      glow.renderOrder = 1; // 渲染順序：數字越小越先渲染
+      mesh.add(glow);       // 添加為子物件，會跟隨主體移動
     });
-    const glow1 = new THREE.Mesh(glow1Geometry, glow1Material);
-    glow1.renderOrder = 1; // 渲染順序：數字越小越先渲染
-    mesh.add(glow1);       // 添加為子物件，會跟隨主體移動
-
-    // --- 第二層光暈（較淡、較大）---
-    const glow2Geometry = new THREE.SphereGeometry(1.6, 32, 32);
-    const glow2Material = new THREE.MeshBasicMaterial({
-      color: params.color,
-      transparent: true,
-      opacity: 0.2,                // 更淡的不透明度
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    });
-    const glow2 = new THREE.Mesh(glow2Geometry, glow2Material);
-    glow2.renderOrder = 1;
-    mesh.add(glow2);
-
-    // --- 第三層光暈（最淡、最大，模擬星體輻射）---
-    const glow3Geometry = new THREE.SphereGeometry(2.4, 32, 32);
-    const glow3Material = new THREE.MeshBasicMaterial({
-      color: params.color,
-      transparent: true,
-      opacity: 0.06,                // 最淡的不透明度
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    });
-    const glow3 = new THREE.Mesh(glow3Geometry, glow3Material);
-    glow3.renderOrder = 1;
-    mesh.add(glow3);
 
     // --- 創建軌跡線 ---
-    // BufferGeometry：高效能幾何體，用於自定義形狀
+    // 預先配置固定大小的 buffer，之後只更新內容與繪製範圍
+    const trailPositions = new Float32Array(TRAIL_LENGTH * 3);
+    const trailAttribute = new THREE.BufferAttribute(trailPositions, 3);
+    trailAttribute.setUsage(THREE.DynamicDrawUsage);
+
     const trailGeometry = new THREE.BufferGeometry();
-    
+    trailGeometry.setAttribute('position', trailAttribute);
+    trailGeometry.setDrawRange(0, 0);
+
     // LineBasicMaterial：線條材質
     const trailMaterial = new THREE.LineBasicMaterial({
       color: params.color,
@@ -206,22 +288,25 @@ function initThree() {
       depthWrite: false, // 禁用深度寫入，避免被光暈遮擋
       depthTest: true    // 啟用深度測試，仍然會被實體物件遮擋
     });
-    
+
     // Line：線條物件
     const trail = new THREE.Line(trailGeometry, trailMaterial);
+    trail.frustumCulled = false; // 軌跡點持續變動，不做視錐剔除
     trail.renderOrder = 999; // 設定最高渲染優先級，確保軌跡最後繪製
     scene.add(trail);
 
     // 將天體資訊存入陣列
     bodies.push({
-      mesh,                               // 網格物件
-      position: params.position.clone(),  // 當前位置（克隆以避免引用）
-      velocity: params.velocity.clone(),  // 當前速度
-      mass: params.mass,                  // 質量
-      trailPositions: []                  // 軌跡點陣列
+      mesh,                                                  // 網格物件
+      position: new THREE.Vector3().fromArray(params.position), // 當前位置
+      velocity: new THREE.Vector3().fromArray(params.velocity), // 當前速度
+      mass: params.mass,                                     // 質量
+      trailPositions,                                        // 軌跡點 buffer
+      trailCount: 0                                          // 目前軌跡點數
     });
 
     trails.push(trail); // 存儲軌跡線
+    forces.push(new THREE.Vector3());
   });
 
   // === 添加環境光 ===
@@ -237,7 +322,7 @@ function addStars() {
   // BufferGeometry：用於創建點雲
   const starGeometry = new THREE.BufferGeometry();
   const starCount = 3000; // 星星數量
-  
+
   // Float32Array：高效能的浮點數陣列
   const positions = new Float32Array(starCount * 3); // 每個點 3 個座標 (x, y, z)
   const sizes = new Float32Array(starCount);         // 每個點的大小
@@ -262,9 +347,9 @@ function addStars() {
 
     // 顏色：模擬星星的色溫變化（藍白到橙白）
     const colorTemp = 0.85 + Math.random() * 0.15;
-    colors[i * 3] = colorTemp;       // R
+    colors[i * 3] = colorTemp;            // R
     colors[i * 3 + 1] = colorTemp * 0.95; // G (稍微降低綠色)
-    colors[i * 3 + 2] = 1.0;         // B (藍色保持最高)
+    colors[i * 3 + 2] = 1.0;              // B (藍色保持最高)
   }
 
   // 設定幾何體屬性
@@ -290,34 +375,28 @@ function addStars() {
 
 /**
  * 計算三體之間的引力
- * @returns {Array} 每個天體受到的總引力向量陣列
+ * 結果寫入 forces 陣列（每個天體受到的總引力向量）
  */
 function calculateGravity() {
-  // 初始化力陣列，每個天體一個零向量
-  const forces = bodies.map(() => new THREE.Vector3());
+  // 歸零力陣列
+  forces.forEach((force) => force.set(0, 0, 0));
 
   // 計算每對天體之間的引力（避免重複計算）
   for (let i = 0; i < bodies.length; i++) {
     for (let j = i + 1; j < bodies.length; j++) {
       // 計算兩天體之間的位置差向量
-      const diff = new THREE.Vector3().subVectors(
-        bodies[j].position,
-        bodies[i].position
-      );
-      
+      tempDiff.subVectors(bodies[j].position, bodies[i].position);
+
       // 計算距離（向量長度）
-      const distance = diff.length();
-      
+      const distance = tempDiff.length();
+
       // 避免除以零或距離過近導致的數值爆炸
       if (distance > 0.1) {
         // 牛頓萬有引力定律：F = G * m1 * m2 / r²
         const forceMagnitude = (G * bodies[i].mass * bodies[j].mass) / (distance * distance);
-        
-        // 單位方向向量
-        const forceDirection = diff.normalize();
-        
-        // 力向量 = 方向 × 大小
-        const force = forceDirection.multiplyScalar(forceMagnitude);
+
+        // 力向量 = 單位方向 × 大小
+        const force = tempDiff.normalize().multiplyScalar(forceMagnitude);
 
         // 根據牛頓第三定律：作用力與反作用力
         forces[i].add(force);  // 天體 i 受力指向天體 j
@@ -325,26 +404,24 @@ function calculateGravity() {
       }
     }
   }
-
-  return forces;
 }
 
 /**
- * 更新天體位置和軌跡
+ * 模擬一步：更新天體位置並記錄軌跡點
  */
-function updateBodies() {
-  const forces = calculateGravity();
+function stepBodies() {
+  calculateGravity();
 
   bodies.forEach((body, index) => {
     // === 更新速度 ===
     // 牛頓第二定律：F = m * a，因此 a = F / m
     const acceleration = forces[index].divideScalar(body.mass);
     // 速度更新：v = v + a * dt
-    body.velocity.add(acceleration.multiplyScalar(dt));
+    body.velocity.addScaledVector(acceleration, dt);
 
     // === 更新位置 ===
     // 位置更新：s = s + v * dt
-    body.position.add(body.velocity.clone().multiplyScalar(dt));
+    body.position.addScaledVector(body.velocity, dt);
 
     // === 邊界檢測和反彈 ===
     ['x', 'y', 'z'].forEach(axis => {
@@ -360,45 +437,50 @@ function updateBodies() {
     const distanceFromCenter = body.position.length(); // 距離中心的距離
     if (distanceFromCenter > BOUNDARY * 0.7) { // 當距離超過邊界的 70%
       // 計算指向中心的力
-      const centerForce = body.position.clone().normalize().multiplyScalar(-0.5);
-      body.velocity.add(centerForce.multiplyScalar(dt));
+      tempVec.copy(body.position).normalize().multiplyScalar(-0.5);
+      body.velocity.addScaledVector(tempVec, dt);
     }
 
-    // 同步網格位置
+    // === 記錄軌跡點 ===
+    const buffer = body.trailPositions;
+    if (body.trailCount < TRAIL_LENGTH) {
+      body.trailCount++;
+    } else {
+      // 已滿：整段往前移一個點，移除最舊的點
+      buffer.copyWithin(0, 3);
+    }
+    body.position.toArray(buffer, (body.trailCount - 1) * 3);
+  });
+}
+
+/**
+ * 同步網格位置與軌跡線到 GPU
+ */
+function syncBodies() {
+  bodies.forEach((body, index) => {
     body.mesh.position.copy(body.position);
 
-    // === 更新軌跡 ===
-    body.trailPositions.push(body.position.clone()); // 添加當前位置到軌跡
-    if (body.trailPositions.length > 400) { // 限制軌跡長度（400 點）
-      body.trailPositions.shift(); // 移除最舊的點
-    }
-
-    // === 更新軌跡線幾何體 ===
-    // 將 Vector3 陣列轉換為 Float32Array
-    const positions = new Float32Array(body.trailPositions.length * 3);
-    body.trailPositions.forEach((pos, i) => {
-      positions[i * 3] = pos.x;     // x
-      positions[i * 3 + 1] = pos.y; // y
-      positions[i * 3 + 2] = pos.z; // z
-    });
-
-    // 更新幾何體的 position 屬性
-    trails[index].geometry.setAttribute(
-      'position',
-      new THREE.BufferAttribute(positions, 3)
-    );
+    const geometry = trails[index].geometry;
+    geometry.attributes.position.needsUpdate = true;
+    geometry.setDrawRange(0, body.trailCount);
   });
 }
 
 /**
  * 動畫循環
  */
-function animate() {
-  // 請求下一幀動畫（約 60fps）
+function animate(now) {
+  // 請求下一幀動畫
   animationId = requestAnimationFrame(animate);
 
-  // 更新天體物理模擬
-  updateBodies();
+  // 依實際經過時間，以固定步長推進物理模擬
+  accumulator += Math.min(now - lastTime, MAX_FRAME_MS);
+  lastTime = now;
+  while (accumulator >= STEP_MS) {
+    stepBodies();
+    accumulator -= STEP_MS;
+  }
+  syncBodies();
 
   // === 相機緩慢旋轉 ===
   // 使用時間計算旋轉角度
@@ -419,8 +501,7 @@ function animate() {
 function handleResize() {
   const canvas = canvasRef.value;
   if (!canvas || !camera || !renderer) return; // 確保所有物件都已初始化
-  
-  // 強制瀏覽器重新計算佈局
+
   const width = canvas.parentElement.clientWidth;
   const height = canvas.parentElement.clientHeight;
 
@@ -428,7 +509,7 @@ function handleResize() {
   camera.aspect = width / height;
   // 更新相機投影矩陣（長寬比改變後必須調用）
   camera.updateProjectionMatrix();
-  
+
   // 更新渲染器大小
   renderer.setSize(width, height);
   // 更新像素比率（處理不同 DPI 的螢幕）
@@ -437,10 +518,6 @@ function handleResize() {
 </script>
 
 <style scoped>
-footer {
-  position: relative;
-}
-
 canvas {
   pointer-events: none; /* 禁用 Canvas 的滑鼠事件，讓下層元素可以被點擊 */
 }

@@ -20,6 +20,7 @@
           v-for="(block, index) in skillBlocks"
           :key="block.id"
           class="skill-card opacity-0"
+          :data-index="index"
           ref="cardRefs"
         >
           <div
@@ -59,15 +60,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { gsap } from 'gsap'
 import { skillBlocks } from '../data/skills'
 
 const cardRefs = ref([])
+let observer = null
 
-onMounted(async () => {
-  await nextTick()
-
+onMounted(() => {
   const directions = [
     { x: -80, y: -80 },
     { x: 80, y: -80 },
@@ -82,11 +82,12 @@ onMounted(async () => {
     { x: 80, y: 80 }
   ]
 
-  const observer = new IntersectionObserver(
+  observer = new IntersectionObserver(
     (entries) => {
-      entries.forEach((entry, index) => {
+      entries.forEach((entry) => {
         const card = entry.target
-        const i = cardRefs.value.indexOf(card)
+        // v-for 的 ref 陣列不保證順序，改用 data-index 取得卡片位置
+        const i = Number(card.dataset.index)
         const enterDir = directions[i % directions.length]
         const exitDir = exitDirections[i % exitDirections.length]
 
@@ -126,15 +127,11 @@ onMounted(async () => {
   cardRefs.value.forEach(card => {
     if (card) observer.observe(card)
   })
-
-  // 儲存 observer 以便清理
-  window.skillsObserver = observer
 })
 
 onUnmounted(() => {
-  if (window.skillsObserver) {
-    window.skillsObserver.disconnect()
-  }
+  observer?.disconnect()
+  cardRefs.value.forEach(card => gsap.killTweensOf(card))
 })
 </script>
 <style scoped>

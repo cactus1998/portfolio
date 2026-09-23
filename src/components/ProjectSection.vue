@@ -14,8 +14,8 @@
       <!-- 卡片排列 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
         <SiteCard
-          v-for="(site, index) in sites"
-          :key="index"
+          v-for="site in sites"
+          :key="site.link"
           :title="site.title"
           :description="site.description"
           :image="site.image"
@@ -31,6 +31,3 @@
 import SiteCard from './SiteCard.vue'
 import { sites } from '../data/sites'
 </script>
-
-<style scoped>
-</style>

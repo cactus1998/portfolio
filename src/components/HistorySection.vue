@@ -16,7 +16,7 @@
       <!-- 時間軸容器 -->
       <div class="relative">
         <!-- 動態時間軸背景 -->
-        <div class="absolute top-8 left-[15px] lg:left-1/2 w-1.5 h-full bg-gradient-to-b from-purple-200 via-indigo-200 to-purple-200 transform lg:-translate-x-1/2">
+        <div ref="timelineRef" class="absolute top-8 left-[15px] lg:left-1/2 w-1.5 h-full bg-gradient-to-b from-purple-200 via-indigo-200 to-purple-200 transform lg:-translate-x-1/2">
           <div
             class="absolute left-0 w-full bg-gradient-to-b from-purple-500 to-indigo-500 transition-all duration-300 ease-out"
             :style="{ height: `${scrollProgress * 100}%` }"
@@ -25,13 +25,13 @@
 
         <!-- 工作項目 -->
         <div class="space-y-16">
-          <div v-for="(job, index) in jobs" :key="index" class="relative">
+          <div v-for="(job, index) in jobs" :key="job.company" class="relative">
             <!-- 時間點 -->
             <div
               class="absolute left-2 lg:left-1/2 w-5 h-5 bg-white border-4 rounded-full transform lg:-translate-x-2.5 mt-3 transition-all duration-300"
               :style="{
                 borderColor: index === 0 ? 'rgb(147, 51, 234)' : 'rgb(79, 70, 229)',
-                boxShadow: scrollProgress > index * 0.33
+                boxShadow: scrollProgress > index / jobs.length
                   ? `0 0 20px ${index === 0 ? 'rgba(147, 51, 234, 0.5)' : 'rgba(79, 70, 229, 0.5)'}`
                   : 'none'
               }"
@@ -39,6 +39,7 @@
 
             <!-- 卡片 -->
             <div
+              :ref="el => (cardWrapperRefs[index] = el)"
               :class="[
                 'lg:w-1/2 ml-10 lg:ml-0',
                 index % 2 === 0 ? 'lg:pr-12' : 'lg:ml-auto lg:pl-12'
@@ -47,8 +48,8 @@
               <div
                 class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-purple-100 group"
                 :style="{
-                  transform: `translateY(${Math.max(0, (index - scrollProgress * 3) * 20)}px)`,
-                  opacity: Math.max(0.5, 1 - Math.abs(index - scrollProgress * 3) * 0.2)
+                  transform: `translateY(${Math.max(0, (index - scrollProgress * jobs.length) * 20)}px)`,
+                  opacity: Math.max(0.5, 1 - Math.abs(index - scrollProgress * jobs.length) * 0.2)
                 }"
               >
                 <!-- 頂部漸層線 -->
@@ -92,15 +93,15 @@
                       type="primary"
                       plain
                       class="!bg-gradient-to-r !from-purple-600 !to-indigo-600 !text-white hover:!from-purple-600 hover:!to-indigo-600 transition-all flex items-center gap-2"
-                      @click="job.showDetails = !job.showDetails"
+                      @click="toggleDetails(index)"
                     >
-                      <span>{{ job.showDetails ? '收起內容' : '展開更多' }}</span>
+                      <span>{{ expanded.has(index) ? '收起內容' : '展開更多' }}</span>
 
                       <!-- 旋轉箭頭 -->
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         class="w-4 h-4 transition-transform duration-300"
-                        :class="{ 'rotate-180': job.showDetails }"
+                        :class="{ 'rotate-180': expanded.has(index) }"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -113,7 +114,7 @@
                     <!-- 展開內容 -->
                     <el-collapse-transition>
                       <div
-                        v-if="job.showDetails"
+                        v-if="expanded.has(index)"
                         class="mt-4 space-y-3 border-t border-gray-100 pt-4"
                       >
                         <div
@@ -139,108 +140,79 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { ElButton, ElCollapseTransition } from 'element-plus'
+import 'element-plus/es/components/button/style/css'
+import 'element-plus/es/components/collapse-transition/style/css'
+import { jobs } from '../data/jobs'
 
 const scrollProgress = ref(0)
 const sectionRef = ref(null)
+const timelineRef = ref(null)
+const cardWrapperRefs = []
 
-const jobs = ref([
-  {
-    title: '前端工程師',
-    company: '億集創見應用科技股份有限公司',
-    duration: '2024/6~2025/6',
-    period: '1年1個月',
-    highlights: ['Vue 3', 'Canvas', 'WebSocket', 'FullCalendar', 'ECharts', 'Math.js'],
-    description: [
-      '與後端工程師、UI 設計師及PM合作，主要負責前端開發，技術棧以 Vue 3 為主',
-      '致伸科技 CRM 系統：使用 Canvas 製作電子簽名、整合簽名板、集成 NFC 讀卡機搭配 WebSocket',
-      '利用 FullCalendar 和 Draggable 實現拖曳式行事曆排班功能',
-      '建築效能評估系統：處理複雜計算公式、使用 math.js、導入 ECharts 數據圖表',
-      'CSP 設置防止 XSS 等攻擊，通過 Jenkins CI/CD 和 SonarSource 弱掃測試'
-    ],
-    showDetails: false
-  },
-  {
-    title: '前端工程師',
-    company: '日陞空間資訊股份有限公司',
-    duration: '2022/9~2024/3',
-    period: '1年7個月',
-    highlights: ['Vue 2/3', 'Pinia', 'Leaflet', 'GSAP', 'ASP.NET', 'ECharts'],
-    description: [
-      '與後端工程師、UI設計師、PM協同合作，技術棧涵蓋 Vue2、Vue3 及 ASP.NET',
-      '主導專案從 Vue 2 升級至 Vue 3，狀態管理從 Vuex 遷移至 Pinia',
-      '道路巡檢網站：導入 ECharts 數據圖表、錯誤修復與功能維護',
-      '軌跡編輯系統：整合 Leaflet 地圖庫，實現查詢、編輯、互動等功能',
-      '公共設施管線系統：使用 GSAP 實現動態效果、原生 JavaScript 表單拖曳功能',
-      'ASP.NET 後端開發：C# API 開發、MSSQL 資料庫串接、IIS 部署'
-    ],
-    showDetails: false
-  },
-  {
-    title: 'UI/UX 與前端工程敏捷開發培訓',
-    company: '勞動職訓課',
-    duration: '2022/3~2022/6',
-    period: '3個月',
-    highlights: ['UI/UX 設計', 'HTML5+CSS3', 'JavaScript', 'Bootstrap', 'Sass/Scss', 'RWD', 'Git'],
-    description: [
-      'User Interface 介面設計與布局基礎訓練',
-      '完成 Prototype 互動雛型實作及 HTML5+CSS3、JavaScript 框架開發',
-      'Sass/Scss 預處理器與 RWD 響應式網頁切板組合實作',
-      '原生 JavaScript 互動程式訓練及 Git 版本控制實務應用',
-      'AI/Photoshop 介面設計軟體應用'
-    ],
-    showDetails: false
-  }
-])
+// 展開中的工作項目 index
+const expanded = ref(new Set())
 
-const handleScroll = () => {
-  if (sectionRef.value) {
-    const element = sectionRef.value
-    const elementRect = element.getBoundingClientRect()
-    const elementHeight = element.offsetHeight
-    const windowHeight = window.innerHeight
-
-    // 獲取元素內部所有工作卡片
-    const cards = element.querySelectorAll('.relative > div')
-    
-    let progress = 0
-    
-    if (elementRect.bottom < 0) {
-      // 元素完全滾出視口上方
-      progress = 1
-    } else if (elementRect.top > windowHeight) {
-      // 元素還沒進入視口
-      progress = 0
-    } else {
-      // 計算第一張卡片到最後一張卡片的距離
-      if (cards.length > 0) {
-        const firstCard = cards[0]
-        const lastCard = cards[cards.length - 1]
-        
-        const firstCardRect = firstCard.getBoundingClientRect()
-        const lastCardRect = lastCard.getBoundingClientRect()
-        
-        // 從第一個卡片頂部到最後一個卡片底部的距離
-        const contentStart = firstCardRect.top
-        const contentEnd = lastCardRect.bottom
-        const contentHeight = contentEnd - contentStart - 200
-        
-        // 當第一個卡片進入螢幕，進度開始增長
-        // 當最後一個卡片到達螢幕下方時，進度完成
-        const scrollOffset = windowHeight - contentStart
-        progress = scrollOffset / (contentHeight + windowHeight)
-        progress = Math.max(0, Math.min(1, progress))
-      }
-    }
-
-    scrollProgress.value = progress
+const toggleDetails = (index) => {
+  if (expanded.value.has(index)) {
+    expanded.value.delete(index)
+  } else {
+    expanded.value.add(index)
   }
 }
 
+const updateProgress = () => {
+  const element = sectionRef.value
+  const timeline = timelineRef.value
+  const lastCard = cardWrapperRefs[jobs.length - 1]
+  if (!element || !timeline || !lastCard) return
+
+  const elementRect = element.getBoundingClientRect()
+  const windowHeight = window.innerHeight
+
+  let progress = 0
+
+  if (elementRect.bottom < 0) {
+    // 元素完全滾出視口上方
+    progress = 1
+  } else if (elementRect.top > windowHeight) {
+    // 元素還沒進入視口
+    progress = 0
+  } else {
+    // 從時間軸頂部到最後一張卡片底部的距離
+    const contentStart = timeline.getBoundingClientRect().top
+    const contentEnd = lastCard.getBoundingClientRect().bottom
+    const contentHeight = contentEnd - contentStart - 200
+
+    // 當時間軸進入螢幕，進度開始增長
+    // 當最後一個卡片到達螢幕下方時，進度完成
+    const scrollOffset = windowHeight - contentStart
+    progress = scrollOffset / (contentHeight + windowHeight)
+    progress = Math.max(0, Math.min(1, progress))
+  }
+
+  scrollProgress.value = progress
+}
+
+// 用 requestAnimationFrame 節流，每幀最多計算一次
+let rafId = null
+const handleScroll = () => {
+  if (rafId) return
+  rafId = requestAnimationFrame(() => {
+    rafId = null
+    updateProgress()
+  })
+}
+
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('resize', handleScroll, { passive: true })
+  updateProgress()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', handleScroll)
+  if (rafId) cancelAnimationFrame(rafId)
 })
 </script>
