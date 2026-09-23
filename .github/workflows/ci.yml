@@ -1,6 +1,7 @@
-name: CI
+name: CI / Deploy
 
-# 只做測試與建置檢查；正式部署為手動 build 後將 dist 放到另一個 repo
+# push 到 master：測試、建置，通過後自動部署到 cactus1998/portfolio-dist（GitHub Pages）
+# pull request：只做測試與建置檢查，不部署
 on:
   push:
     branches:
@@ -15,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  test-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,3 +36,18 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # 將 dist 推到 portfolio-dist 的 master 分支
+      # keep_files：保留其他作品的子資料夾（fishing-reel、yoyi…），只覆蓋作品集本身的檔案
+      # 需在本 repo 設定 secret DEPLOY_KEY（portfolio-dist 的 deploy key 私鑰，需有寫入權限）
+      - name: Deploy to portfolio-dist
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          deploy_key: ${{ secrets.DEPLOY_KEY }}
+          external_repository: cactus1998/portfolio-dist
+          publish_branch: master
+          publish_dir: ./dist
+          keep_files: true
+          cname: kentfolio.dev
+          full_commit_message: "deploy: ${{ github.event.head_commit.message }}"
