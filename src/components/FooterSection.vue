@@ -30,7 +30,7 @@
           </div>
         </div>
         <div class="border-t border-gray-700 pt-6 text-gray-400">
-          <p>© {{ copyrightYears }} Designed & Developed by Ben.</p>
+          <p>© {{ copyrightYears }} Designed & Developed by Kent.</p>
         </div>
       </div>
     </div>

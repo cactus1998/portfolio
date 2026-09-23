@@ -63,13 +63,13 @@ describe('FooterSection 內容', () => {
   it('2025 年只顯示單一年份', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2025-06-01'))
-    expect((await mountFooter()).text()).toContain('© 2025 Designed')
+    expect((await mountFooter()).text()).toContain('© 2025 Designed & Developed by Kent.')
   })
 
   it('之後的年份顯示為區間', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2027-03-01'))
-    expect((await mountFooter()).text()).toContain('© 2025-2027 Designed')
+    expect((await mountFooter()).text()).toContain('© 2025-2027 Designed & Developed by Kent.')
   })
 })
 
