@@ -39,6 +39,7 @@ jobs:
 
       # 將 dist 推到 portfolio-dist 的 master 分支
       # keep_files：保留其他作品的子資料夾（fishing-reel、yoyi…），只覆蓋作品集本身的檔案
+      # 網域由 public/CNAME 隨 dist 一起部署（keep_files 模式下 action 的 cname 參數不會覆蓋既有 CNAME）
       # 需在本 repo 設定 secret DEPLOY_KEY（portfolio-dist 的 deploy key 私鑰，需有寫入權限）
       - name: Deploy to portfolio-dist
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -49,5 +50,4 @@ jobs:
           publish_branch: master
           publish_dir: ./dist
           keep_files: true
-          cname: kentfolio.dev
           full_commit_message: "deploy: ${{ github.event.head_commit.message }}"
