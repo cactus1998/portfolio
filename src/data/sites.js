@@ -16,21 +16,21 @@ export const sites = [
     description: "純手工鋁製前打輪形象網站",
     image: logo,
     link: "https://kentfolio.dev/fishing-reel/",
-    techStack: ["Vue 3", "Vite" , "element-plus" , "Tailwind CSS" , "GSAP" , "aos", "vue-awesome-swiper" , "vue3-table-lite" , "webpack" , "i18n" , "vercel"]
+    techStack: ["Vue 3", "Vue CLI", "webpack", "element-plus", "Tailwind CSS", "GSAP", "aos", "Swiper", "vue3-table-lite", "vue-i18n"]
   },
   {
     title: "樂咖大物輪 購物車",
     description: "線上購物車系統，只做為展示用，不提供實際交易",
     image: logo,
     link: "https://kentfolio.dev/fishing-shop/",
-    techStack: ["Vue 3" , "element-plus" , "Tailwind CSS" , "Pinia" , "SweetAlert2", "Firebase" , "webpack" , "vercel"]
+    techStack: ["Vue 3", "Vite", "Vue Router", "Pinia", "element-plus", "Tailwind CSS", "Swiper", "SweetAlert2", "Firestore"]
   },
   {
     title: "樂咖大物輪 購物車後台",
     description: "線上購物車系統後台，須第三方登入，只做為展示用",
     image: logo,
     link: "https://kentfolio.dev/fishing-shop-backstage/",
-    techStack: ["Vue 3", "Vite" , "element-plus" , "Tailwind CSS" , "Pinia" , "Firebase" , "webpack" , "vercel"]
+    techStack: ["Vue 3", "Vite", "Vue Router", "element-plus", "Tailwind CSS", "Firebase Auth", "Firestore", "SweetAlert2"]
   },
   {
     title: "react-game-tic-tac-toe",
