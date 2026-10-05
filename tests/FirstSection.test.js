@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { intersectionObservers, flushFrame, rafQueue } from './setup'
+import { rafQueue } from './setup'
 
 vi.mock('gsap', () => {
   const timeline = { to: vi.fn() }
@@ -100,58 +100,4 @@ describe('FirstSection', () => {
     await vi.advanceTimersByTimeAsync(1000)
     expect(gsap.timeline).not.toHaveBeenCalled()
   })
-
-  it('每幀繪製雪花，並逐漸增加到 120 顆', () => {
-    const wrapper = mountSection()
-    const ctx = wrapper.find('canvas').element.getContext('2d')
-
-    flushFrame()
-    expect(ctx.clearRect).toHaveBeenCalled()
-    expect(ctx.drawImage).toHaveBeenCalledTimes(1)
-
-    for (let i = 0; i < 200; i++) flushFrame()
-    ctx.drawImage.mockClear()
-    flushFrame()
-    expect(ctx.drawImage).toHaveBeenCalledTimes(120)
-  })
-
-  it('首頁離開畫面時暫停雪花動畫，回到畫面時恢復', () => {
-    mountSection()
-    const observer = intersectionObservers[0]
-    expect(rafQueue.size).toBe(1)
-
-    observer.trigger(false)
-    expect(rafQueue.size).toBe(0)
-
-    observer.trigger(true)
-    expect(rafQueue.size).toBe(1)
-  })
-
-  it('卸載時停止動畫，並移除所有加在首頁區塊上的事件監聽', () => {
-    const addSpy = vi.spyOn(EventTarget.prototype, 'addEventListener')
-    const removeSpy = vi.spyOn(EventTarget.prototype, 'removeEventListener')
-    const wrapper = mountSection()
-    const section = wrapper.find('section').element
-
-    const added = addSpy.mock.contexts
-      .map((ctx, i) => [ctx, ...addSpy.mock.calls[i]])
-      .filter(([ctx]) => ctx === section)
-    expect(added.map(([, name]) => name)).toEqual(expect.arrayContaining(['mousemove', 'mouseleave']))
-
-    mounted.splice(0)
-    wrapper.unmount()
-
-    const removed = removeSpy.mock.contexts
-      .map((ctx, i) => [ctx, ...removeSpy.mock.calls[i]])
-      .filter(([ctx]) => ctx === section)
-    // 每個加上的監聽都要以同一個 handler 移除
-    added.forEach(([, name, handler]) => {
-      expect(removed.some(([, n, h]) => n === name && h === handler)).toBe(true)
-    })
-    expect(rafQueue.size).toBe(0)
-    expect(intersectionObservers[0].disconnected).toBe(true)
-    addSpy.mockRestore()
-    removeSpy.mockRestore()
-  })
-
 })

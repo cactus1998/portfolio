@@ -2,17 +2,17 @@
 <template>
   <section
     id="top"
-    class="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-300 via-purple-50 to-blue-300 relative overflow-hidden p-4"
+    class="min-h-screen w-full flex items-center justify-center bg-white relative overflow-hidden p-4"
   >
-    <!-- Canvas 雪花背景 -->
-    <canvas ref="snowCanvas" class="absolute inset-0 w-full h-full"></canvas>
+    <!-- 背景：極光色塊 + 格線 + 粒子網路 -->
+    <HeroBackground />
 
     <!-- 內容 -->
     <div class="max-w-4xl text-center px-6 relative z-10">
       <div class="mb-8">
         <div
           ref="avatarRef"
-          class="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 opacity-0 scale-0 rounded-full overflow-hidden"
+          class="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 opacity-0 scale-0 rounded-full overflow-hidden ring-4 ring-white shadow-xl shadow-indigo-900/10"
         >
           <img
             :src="me"
@@ -114,6 +114,7 @@ import { whenAppLoaded } from "../utils/appLoaded";
 import { prefersReducedMotion } from "../utils/motion";
 import { profile } from "../data/profile";
 import GithubIcon from "./GithubIcon.vue";
+import HeroBackground from "./HeroBackground.vue";
 
 // 註冊 GSAP TextPlugin
 gsap.registerPlugin(TextPlugin);
@@ -123,25 +124,6 @@ const TITLE_TEXT = "Hello, 我是 ";
 const TITLE_NAME = profile.name;
 const DESC_TEXT =
   "熱愛創造優雅的網頁體驗，專注於前端開發與使用者介面設計。\n用程式碼實現創意，讓每個專案都充滿生命力。";
-
-// Canvas 相關 refs
-const snowCanvas = ref<HTMLCanvasElement | null>(null);
-let ctx: CanvasRenderingContext2D | null = null;
-let snowflakes: Snowflake[] = [];
-let animationId: number | null = null;
-let mouseX = -9999;
-let mouseY = -9999;
-let resizeObserver: ResizeObserver | null = null;
-let visibilityObserver: IntersectionObserver | null = null;
-let section: HTMLElement | null = null;
-let targetSnowflakeCount = 120;
-let currentSnowflakeCount = 0;
-let snowflakeSpawnRate = 1;
-
-// Canvas 邏輯尺寸（CSS px）與像素比
-let width = 0;
-let height = 0;
-let dpr = 1;
 
 // GSAP 文字動畫 refs
 const titleTextRef = ref<HTMLElement | null>(null);
@@ -154,189 +136,6 @@ const avatarRef = ref<HTMLElement | null>(null);
 let textTimeline: gsap.core.Timeline | null = null;
 let textDelayId: ReturnType<typeof setTimeout> | undefined;
 let unmounted = false;
-
-// ========== 雪花圖片快取 ==========
-// shadowBlur 每幀逐顆計算很吃效能，改為預先畫好帶光暈的雪花，之後直接 drawImage
-const SHADOW_BLUR = 10;
-const SPRITE_PADDING = 16;
-interface Sprite {
-  canvas: HTMLCanvasElement;
-  half: number;
-}
-const spriteCache = new Map<string, Sprite>();
-
-const getSprite = (radius: number, opacity: number): Sprite | null => {
-  const key = `${radius}-${opacity}-${dpr}`;
-  let sprite = spriteCache.get(key);
-  if (sprite) return sprite;
-
-  const half = radius + SPRITE_PADDING;
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = Math.ceil(half * 2 * dpr);
-  const spriteCtx = canvas.getContext("2d");
-  if (!spriteCtx) return null;
-  spriteCtx.scale(dpr, dpr);
-  spriteCtx.beginPath();
-  spriteCtx.arc(half, half, radius, 0, Math.PI * 2);
-  spriteCtx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-  // shadowBlur 不受 transform 影響，需自行乘上像素比
-  spriteCtx.shadowBlur = SHADOW_BLUR * dpr;
-  spriteCtx.shadowColor = "rgba(255, 255, 255, 0.8)";
-  spriteCtx.fill();
-
-  sprite = { canvas, half };
-  spriteCache.set(key, sprite);
-  return sprite;
-};
-
-// ========== 雪花類別 ==========
-class Snowflake {
-  x = 0;
-  y = 0;
-  radius = 0;
-  speed = 0;
-  wind = 0;
-  opacity = 0;
-
-  constructor() {
-    this.reset();
-  }
-
-  reset() {
-    this.x = Math.random() * width;
-    this.y = Math.random() * -100;
-    // 半徑與透明度量化，讓預先畫好的雪花圖片可以重複使用
-    this.radius = Math.round((Math.random() * 4 + 2) * 2) / 2;
-    this.speed = Math.random() * 1 + 0.5;
-    this.wind = Math.random() * 0.5 - 0.25;
-    this.opacity = Math.round((Math.random() * 0.6 + 0.4) * 20) / 20;
-  }
-
-  update() {
-    this.y += this.speed;
-    this.x += this.wind;
-
-    const dx = mouseX - this.x;
-    const dy = mouseY - this.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance < 120 && distance > 0) {
-      const force = (120 - distance) / 120;
-      this.x += dx * force * 0.03;
-      this.y += dy * force * 0.03;
-    }
-
-    if (this.y > height + 10) {
-      this.reset();
-    }
-
-    if (this.x > width + 10) {
-      this.x = -10;
-    } else if (this.x < -10) {
-      this.x = width + 10;
-    }
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    const sprite = getSprite(this.radius, this.opacity);
-    if (!sprite) return;
-    const { canvas, half } = sprite;
-    ctx.drawImage(canvas, this.x - half, this.y - half, half * 2, half * 2);
-  }
-}
-
-// ========== 滑鼠互動 ==========
-const handleMouseMove = (e: MouseEvent) => {
-  if (!section) return;
-  const rect = section.getBoundingClientRect();
-  mouseX = e.clientX - rect.left;
-  mouseY = e.clientY - rect.top;
-};
-
-const handleMouseLeave = () => {
-  mouseX = -9999;
-  mouseY = -9999;
-};
-
-// ========== 動畫循環 ==========
-const animate = () => {
-  if (!ctx) return;
-  const context = ctx;
-  context.clearRect(0, 0, width, height);
-
-  if (currentSnowflakeCount < targetSnowflakeCount) {
-    const toAdd = Math.min(
-      snowflakeSpawnRate,
-      targetSnowflakeCount - currentSnowflakeCount
-    );
-
-    for (let i = 0; i < toAdd; i++) {
-      snowflakes.push(new Snowflake());
-      currentSnowflakeCount++;
-    }
-  }
-
-  snowflakes.forEach((snowflake) => {
-    snowflake.update();
-    snowflake.draw(context);
-  });
-
-  animationId = requestAnimationFrame(animate);
-};
-
-const startSnow = () => {
-  if (!animationId) animationId = requestAnimationFrame(animate);
-};
-
-const stopSnow = () => {
-  if (animationId) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-  }
-};
-
-// ========== 初始化雪花系統 ==========
-const initSnow = () => {
-  const canvas = snowCanvas.value;
-  if (!canvas) return;
-
-  const context = canvas.getContext("2d");
-  if (!context) return;
-  ctx = context;
-
-  const resize = () => {
-    const newDpr = Math.min(window.devicePixelRatio || 1, 2);
-    if (newDpr !== dpr) spriteCache.clear();
-    dpr = newDpr;
-    width = canvas.offsetWidth;
-    height = canvas.offsetHeight;
-    // 依像素比放大實際解析度，高 DPI 螢幕才不會模糊
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    context.setTransform(dpr, 0, 0, dpr, 0, 0);
-  };
-  resize();
-
-  resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(canvas);
-
-  snowflakes = [];
-  currentSnowflakeCount = 0;
-
-  section = canvas.parentElement;
-  if (!section) return;
-  section.addEventListener("mousemove", handleMouseMove);
-  section.addEventListener("mouseleave", handleMouseLeave);
-
-  // 首頁區塊不在畫面上時暫停動畫，節省效能
-  visibilityObserver = new IntersectionObserver(([entry]) => {
-    if (entry.isIntersecting) startSnow();
-    else stopSnow();
-  });
-  visibilityObserver.observe(section);
-
-  startSnow();
-};
 
 // ========== GSAP 文字動畫 ==========
 const initTextAnimation = () => {
@@ -422,10 +221,8 @@ onMounted(() => {
     return;
   }
 
-  initSnow();
-
   // 等 Loading 畫面結束（頁面可見）後再開始文字動畫，
-  // 延遲一點點讓雪花先出現
+  // 延遲一點點讓背景先出現
   whenAppLoaded().then(() => {
     if (unmounted) return;
     textDelayId = setTimeout(initTextAnimation, 300);
@@ -434,20 +231,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   unmounted = true;
-  stopSnow();
   clearTimeout(textDelayId);
-
-  resizeObserver?.disconnect();
-  visibilityObserver?.disconnect();
-
-  if (section) {
-    section.removeEventListener("mousemove", handleMouseMove);
-    section.removeEventListener("mouseleave", handleMouseLeave);
-  }
 
   // 清理 GSAP 動畫
   textTimeline?.kill();
-  spriteCache.clear();
 });
 </script>
 
