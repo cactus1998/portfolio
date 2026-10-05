@@ -2,6 +2,21 @@
 export const jobs = [
   {
     title: '前端工程師',
+    company: '星益欣數位服務股份有限公司',
+    duration: '2025/11~2026/8',
+    period: '10個月',
+    highlights: ['Vue 3', 'TypeScript', 'Pinia', 'TanStack Query', 'Tailwind CSS', 'Element Plus', 'GA4', 'Vitest'],
+    description: [
+      '與後端工程師及PM合作，主要負責前端開發，技術棧以 Vue 3 為主',
+      '開發各種手機點餐系統，涵蓋購物車、結帳、會員登入等流程',
+      '採 Monorepo 與 UI / App / State / Service 分層架構，以 Composable 封裝業務邏輯',
+      'Pinia 管理客戶端狀態、TanStack Query 管理伺服器狀態，API 統一透過共用 httpClient 串接',
+      '導入 GA4 事件追蹤，記錄加入購物車、結帳、購買等使用者行為',
+      '使用 Vue I18n 支援多語系，以 Vitest、Cypress 撰寫單元與 E2E 測試'
+    ]
+  },
+  {
+    title: '前端工程師',
     company: '億集創見應用科技股份有限公司',
     duration: '2024/6~2025/6',
     period: '1年1個月',
