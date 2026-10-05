@@ -63,18 +63,33 @@
       </div>
 
       <!-- 按鈕 - 推到底部 -->
-      <a
-        :href="link"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="mt-auto inline-flex items-center justify-center w-full px-6 py-3 
-               bg-gray-800 text-white font-medium rounded-full
-               hover:bg-indigo-800 hover:text-white active:scale-95
-               transition-all duration-300 shadow-lg
-               flex-shrink-0"
-      >
-        前往專案
-      </a>
+      <div class="mt-auto flex gap-3 flex-shrink-0">
+        <a
+          :href="link"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 inline-flex items-center justify-center px-6 py-3
+                 bg-gray-800 text-white font-medium rounded-full
+                 hover:bg-indigo-800 hover:text-white active:scale-95
+                 transition-all duration-300 shadow-lg"
+        >
+          前往專案
+        </a>
+        <a
+          v-if="repo"
+          :href="repo"
+          target="_blank"
+          rel="noopener noreferrer"
+          :aria-label="`${title} 原始碼（GitHub）`"
+          class="inline-flex items-center justify-center gap-2 px-5 py-3
+                 border-2 border-gray-800 text-gray-800 font-medium rounded-full
+                 hover:bg-gray-800 hover:text-white active:scale-95
+                 transition-all duration-300"
+        >
+          <GithubIcon class="w-5 h-5" />
+          <span>原始碼</span>
+        </a>
+      </div>
     </div>
 
     <!-- 卡片邊緣光暈 -->
@@ -85,12 +100,15 @@
 </template>
 
 <script setup>
+import GithubIcon from './GithubIcon.vue'
+
 defineProps({
   title: String,
   description: String,
   image: String,
   link: String,
-  techStack: Array 
+  repo: String,
+  techStack: Array
 })
 </script>
 

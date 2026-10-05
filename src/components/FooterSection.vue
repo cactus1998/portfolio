@@ -1,5 +1,5 @@
 <template>
-  <footer ref="footerRef" class="relative bg-gray-900 h-[650px] text-white overflow-hidden">
+  <footer id="contact" ref="footerRef" class="relative bg-gray-900 h-[650px] text-white overflow-hidden">
     <!-- Three.js Canvas 背景 -->
     <canvas ref="canvasRef" class="absolute inset-0 w-full h-full"></canvas>
 
@@ -7,7 +7,8 @@
     <div
       class="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6"
     >
-      <div class="max-w-4xl w-full">
+      <!-- 半透明底板，避免天體經過時遮住文字 -->
+      <div class="max-w-4xl w-full bg-black/50 backdrop-blur-sm rounded-2xl px-6 py-8 sm:px-10 border border-white/10">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
             <h3 class="text-2xl font-bold mb-4">關於我</h3>
@@ -26,6 +27,17 @@
                   {{ EMAIL }}
                 </a>
               </li>
+              <li>
+                <a
+                  :href="profile.github"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 font-normal text-gray-300 hover:text-white transition-colors"
+                >
+                  <GithubIcon class="w-5 h-5" />
+                  github.com/cactus1998
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -40,8 +52,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { whenAppLoaded } from '../utils/appLoaded';
+import { prefersReducedMotion } from '../utils/motion';
+import { profile } from '../data/profile';
+import GithubIcon from './GithubIcon.vue';
 
-const EMAIL = 's770880qq@gmail.com';
+const EMAIL = profile.email;
 const START_YEAR = 2025;
 const currentYear = new Date().getFullYear();
 const copyrightYears = currentYear > START_YEAR ? `${START_YEAR}-${currentYear}` : `${START_YEAR}`;
@@ -172,6 +187,11 @@ function ensureInit() {
  */
 function start() {
   if (unmounted || !isVisible || !renderer || animationId) return;
+  // 減少動態效果：只畫一張靜態畫面
+  if (prefersReducedMotion()) {
+    renderer.render(scene, camera);
+    return;
+  }
   lastTime = performance.now();
   animationId = requestAnimationFrame(animate);
 }

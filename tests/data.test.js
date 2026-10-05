@@ -14,6 +14,7 @@ describe('sites 作品資料', () => {
       expect(typeof site.image).toBe('string')
       expect(site.link).toMatch(/^https:\/\//)
       expect(Array.isArray(site.techStack)).toBe(true)
+      if (site.repo !== undefined) expect(site.repo).toMatch(/^https:\/\/github\.com\//)
     })
   })
 

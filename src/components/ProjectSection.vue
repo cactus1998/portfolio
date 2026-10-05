@@ -20,6 +20,7 @@
           :description="site.description"
           :image="site.image"
           :link="site.link"
+          :repo="site.repo"
           :techStack="site.techStack"
         />
       </div>

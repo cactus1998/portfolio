@@ -9,12 +9,13 @@ export const skillBlocks = [
     textColor: 'text-indigo-700',
     tagColor: 'bg-indigo-200 text-indigo-700 border-indigo-300',
     skills: [
-      { tags: ['HTML5'] },
-      { tags: ['CSS3', 'SCSS'] },
-      { tags: ['JavaScript'] },
-      { tags: ['Vue2', 'Vue3', 'Vuex', 'Router', 'Pinia'] },
+      { tags: ['HTML5', 'CSS3', 'SCSS', 'Tailwind CSS'] },
+      { tags: ['JavaScript', 'TypeScript'] },
+      { tags: ['Vue2', 'Vue3', 'Vuex', 'Vue Router', 'Pinia', 'TanStack Query', 'Vue I18n'] },
       { tags: ['React', 'Hooks', 'Redux'] },
-      { tags: ['ASP.NET', 'jQuery'] }
+      { tags: ['Element Plus', 'jQuery'] },
+      { tags: ['GSAP', 'Three.js', 'Canvas'] },
+      { tags: ['ECharts', 'Leaflet', 'FullCalendar'] }
     ]
   },
   {
@@ -22,14 +23,14 @@ export const skillBlocks = [
     title: 'Backend & Database',
     icon: '🔧',
     color: 'bg-green-100',
-    borderColor: 'border-green-100',
+    borderColor: 'border-green-300',
     textColor: 'text-green-700',
-    tagColor: 'bg-green-100 text-green-700 border-green-200',
+    tagColor: 'bg-green-200 text-green-700 border-green-300',
     skills: [
       { tags: ['ASP.NET', 'C#'] },
-      { tags: ['MS SQL'] },
-      { tags: ['MySQL'] },
-      { tags: ['Firebase'] },
+      { tags: ['MS SQL', 'MySQL'] },
+      { tags: ['Firebase', 'Firestore'] },
+      { tags: ['IIS'] }
     ]
   },
   {
@@ -41,10 +42,11 @@ export const skillBlocks = [
     textColor: 'text-purple-700',
     tagColor: 'bg-purple-200 text-purple-700 border-purple-300',
     skills: [
-      { tags: ['Git', 'Sourcetree'] },
-      { tags: ['GitHub'] },
-      { tags: ['GitHub Pages'] },
-      { tags: ['Linux CLI'] }
+      { tags: ['Git', 'GitHub', 'Sourcetree'] },
+      { tags: ['GitHub Actions', 'Jenkins', 'SonarQube'] },
+      { tags: ['Vite', 'Webpack'] },
+      { tags: ['Vitest', 'Cypress'] },
+      { tags: ['GitHub Pages', 'Linux CLI'] }
     ]
   },
   {
@@ -56,9 +58,9 @@ export const skillBlocks = [
     textColor: 'text-orange-700',
     tagColor: 'bg-orange-200 text-orange-700 border-orange-300',
     skills: [
-      { tags: ['Git Mind', 'Miro'] },
+      { tags: ['GA4 事件追蹤'] },
       { tags: ['LINE Developer'] },
-      { tags: ['UI/UX Planning'] }
+      { tags: ['UI/UX Planning', 'Photoshop', 'Illustrator'] }
     ]
   }
 ]

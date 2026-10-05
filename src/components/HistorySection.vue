@@ -11,6 +11,13 @@
           工作歷程
         </h2>
         <p class="text-gray-600 mt-4 lg:mt-6 text-base lg:text-lg">前端開發經驗與技術</p>
+        <button
+          type="button"
+          class="toggle-all mt-6 text-sm font-medium text-purple-700 hover:text-purple-900 underline underline-offset-4 bg-transparent border-0 p-0"
+          @click="toggleAll"
+        >
+          {{ allExpanded ? '全部收起' : '全部展開' }}
+        </button>
       </div>
 
       <!-- 時間軸容器 -->
@@ -92,7 +99,7 @@
                     <el-button
                       type="primary"
                       plain
-                      class="!bg-gradient-to-r !from-purple-600 !to-indigo-600 !text-white hover:!from-purple-600 hover:!to-indigo-600 transition-all flex items-center gap-2"
+                      class="job-toggle !bg-gradient-to-r !from-purple-600 !to-indigo-600 !text-white hover:!from-purple-600 hover:!to-indigo-600 transition-all flex items-center gap-2"
                       @click="toggleDetails(index)"
                     >
                       <span>{{ expanded.has(index) ? '收起內容' : '展開更多' }}</span>
@@ -139,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElButton, ElCollapseTransition } from 'element-plus'
 import 'element-plus/es/components/button/style/css'
 import 'element-plus/es/components/collapse-transition/style/css'
@@ -150,8 +157,14 @@ const sectionRef = ref(null)
 const timelineRef = ref(null)
 const cardWrapperRefs = []
 
-// 展開中的工作項目 index
-const expanded = ref(new Set())
+// 展開中的工作項目 index，最新一筆預設展開
+const expanded = ref(new Set([0]))
+
+const allExpanded = computed(() => expanded.value.size === jobs.length)
+
+const toggleAll = () => {
+  expanded.value = allExpanded.value ? new Set() : new Set(jobs.map((_, i) => i))
+}
 
 const toggleDetails = (index) => {
   if (expanded.value.has(index)) {

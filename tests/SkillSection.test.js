@@ -4,7 +4,7 @@ import { intersectionObservers } from './setup'
 import { skillBlocks } from '../src/data/skills'
 
 vi.mock('gsap', () => {
-  const gsap = { fromTo: vi.fn(), to: vi.fn(), killTweensOf: vi.fn() }
+  const gsap = { fromTo: vi.fn(), to: vi.fn(), set: vi.fn(), killTweensOf: vi.fn() }
   return { gsap, default: gsap }
 })
 
@@ -47,13 +47,29 @@ describe('SkillSection', () => {
     expect(from2).toMatchObject({ opacity: 0, x: -80, y: -80 })
   })
 
-  it('卡片離開畫面時淡出', () => {
+  it('進場後停止觀察該卡片，離開畫面也不會淡出', () => {
     const wrapper = mount(SkillSection)
     const card = wrapper.findAll('.skill-card')[1].element
-    intersectionObservers[0].trigger(false, [card])
+    const observer = intersectionObservers[0]
 
-    expect(gsap.killTweensOf).toHaveBeenCalledWith(card)
-    expect(gsap.to).toHaveBeenCalledWith(card, expect.objectContaining({ opacity: 0, x: -40, y: -40 }))
+    observer.trigger(true, [card])
+    expect(observer.elements.has(card)).toBe(false)
+
+    observer.trigger(false, [card])
+    expect(gsap.fromTo).toHaveBeenCalledTimes(1)
+    expect(gsap.to).not.toHaveBeenCalled()
+  })
+
+  it('系統要求減少動態效果時，直接顯示所有卡片且不建立 observer', () => {
+    window.matchMedia = vi.fn(() => ({ matches: true }))
+    try {
+      mount(SkillSection)
+      expect(intersectionObservers).toHaveLength(0)
+      expect(gsap.set).toHaveBeenCalledTimes(skillBlocks.length)
+      expect(gsap.fromTo).not.toHaveBeenCalled()
+    } finally {
+      delete window.matchMedia
+    }
   })
 
   it('卸載時中斷 observer，且不污染 window', () => {

@@ -60,6 +60,14 @@ describe('FooterSection 內容', () => {
     expect(link.text()).toBe('s770880qq@gmail.com')
   })
 
+  it('提供 GitHub 連結與 #contact 錨點', async () => {
+    const wrapper = await mountFooter()
+    expect(wrapper.find('footer').attributes('id')).toBe('contact')
+    const github = wrapper.find('a[href="https://github.com/cactus1998"]')
+    expect(github.exists()).toBe(true)
+    expect(github.attributes('rel')).toContain('noopener')
+  })
+
   it('2025 年只顯示單一年份', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2025-06-01'))
@@ -188,6 +196,18 @@ describe('FooterSection 三體動畫', () => {
           }
         })
       }
+    }
+  })
+
+  it('系統要求減少動態效果時，只畫一張靜態畫面', async () => {
+    window.matchMedia = vi.fn(() => ({ matches: true }))
+    try {
+      await mountFooter()
+      await showFooter()
+      expect(renderer.instances[0].render).toHaveBeenCalledTimes(1)
+      expect(rafQueue.size).toBe(0)
+    } finally {
+      delete window.matchMedia
     }
   })
 

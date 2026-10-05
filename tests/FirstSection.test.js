@@ -40,7 +40,32 @@ describe('FirstSection', () => {
     expect(srTexts[0]).toBe('Hello, 我是 邦晉')
     expect(srTexts[1]).toContain('熱愛創造優雅的網頁體驗')
     // 打字動畫用的元素對輔助技術隱藏，避免重複朗讀
-    expect(wrapper.findAll('[aria-hidden="true"]').length).toBe(3)
+    expect(wrapper.findAll('h1 [aria-hidden="true"], .description [aria-hidden="true"]').length).toBe(3)
+  })
+
+  it('顯示職稱與年資，並提供 GitHub 連結', () => {
+    const wrapper = mountSection()
+    expect(wrapper.text()).toContain('前端工程師')
+    expect(wrapper.text()).toContain('3 年以上經驗')
+    const github = wrapper.find('a[aria-label="GitHub"]')
+    expect(github.attributes('href')).toBe('https://github.com/cactus1998')
+    expect(github.attributes('rel')).toContain('noopener')
+  })
+
+  it('系統要求減少動態效果時，直接顯示完整內容且不播放動畫', async () => {
+    window.matchMedia = vi.fn(() => ({ matches: true }))
+    try {
+      window.__appLoaded = true
+      const wrapper = mountSection()
+      await vi.advanceTimersByTimeAsync(1000)
+
+      expect(gsap.timeline).not.toHaveBeenCalled()
+      expect(rafQueue.size).toBe(0)
+      expect(wrapper.find('h1 [aria-hidden="true"]').text()).toBe('Hello, 我是')
+      expect(wrapper.find('.description [aria-hidden="true"]').text()).toContain('熱愛創造優雅的網頁體驗')
+    } finally {
+      delete window.matchMedia
+    }
   })
 
   it('等 Loading 畫面結束後才開始打字動畫', async () => {

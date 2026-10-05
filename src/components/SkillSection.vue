@@ -8,7 +8,7 @@
       <!-- 標題 -->
       <div class="text-center mb-16">
         <h2
-          class="text-5xl font-bold text-gray-900 mb-4 tracking-tight"
+          class="text-3xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight"
         >
           技術能力
         </h2>
@@ -63,79 +63,51 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { gsap } from 'gsap'
 import { skillBlocks } from '../data/skills'
+import { prefersReducedMotion } from '../utils/motion'
 
 const cardRefs = ref([])
 let observer = null
 
+// 依卡片位置決定從哪個方向飛入
+const directions = [
+  { x: -80, y: -80 },
+  { x: 80, y: -80 },
+  { x: 80, y: 80 },
+  { x: -80, y: 80 }
+]
+
 onMounted(() => {
-  const directions = [
-    { x: -80, y: -80 },
-    { x: 80, y: -80 },
-    { x: 80, y: 80 },
-    { x: -80, y: 80 }
-  ]
+  if (prefersReducedMotion()) {
+    cardRefs.value.forEach((card) => card && gsap.set(card, { opacity: 1 }))
+    return
+  }
 
-  const exitDirections = [
-    { x: -80, y: 80 },
-    { x: -80, y: -80 },
-    { x: 80, y: -80 },
-    { x: 80, y: 80 }
-  ]
-
+  // 每張卡片只在第一次進入畫面時播放進場動畫，之後保持顯示
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
         const card = entry.target
         // v-for 的 ref 陣列不保證順序，改用 data-index 取得卡片位置
-        const i = Number(card.dataset.index)
-        const enterDir = directions[i % directions.length]
-        const exitDir = exitDirections[i % exitDirections.length]
-
-        if (entry.isIntersecting) {
-          // 進入視窗
-          gsap.killTweensOf(card)
-          gsap.fromTo(
-            card,
-            { opacity: 0, x: enterDir.x, y: enterDir.y },
-            {
-              opacity: 1,
-              x: 0,
-              y: 0,
-              duration: 1.3,
-              ease: 'power3.out'
-            }
-          )
-        } else {
-          // 離開視窗
-          gsap.killTweensOf(card)
-          gsap.to(card, {
-            opacity: 0,
-            x: exitDir.x * 0.5,
-            y: exitDir.y * 0.5,
-            duration: 0.5,
-            ease: 'power2.in'
-          })
-        }
+        const dir = directions[Number(card.dataset.index) % directions.length]
+        observer.unobserve(card)
+        gsap.fromTo(
+          card,
+          { opacity: 0, x: dir.x, y: dir.y },
+          { opacity: 1, x: 0, y: 0, duration: 1.1, ease: 'power3.out' }
+        )
       })
     },
-    {
-      threshold: 0.1,
-      rootMargin: '-100px 0px -100px 0px'
-    }
+    { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
   )
 
-  cardRefs.value.forEach(card => {
+  cardRefs.value.forEach((card) => {
     if (card) observer.observe(card)
   })
 })
 
 onUnmounted(() => {
   observer?.disconnect()
-  cardRefs.value.forEach(card => gsap.killTweensOf(card))
+  cardRefs.value.forEach((card) => gsap.killTweensOf(card))
 })
 </script>
-<style scoped>
-.skill-card {
-  opacity: 0;
-}
-</style>

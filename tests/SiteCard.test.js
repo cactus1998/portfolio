@@ -35,6 +35,20 @@ describe('SiteCard', () => {
     expect(link.attributes('rel')).toContain('noopener')
   })
 
+  it('有原始碼連結時顯示 GitHub 按鈕', () => {
+    const repo = 'https://github.com/cactus1998/example'
+    const links = mount(SiteCard, { props: { ...props, repo } }).findAll('a')
+    expect(links).toHaveLength(2)
+    expect(links[1].attributes('href')).toBe(repo)
+    expect(links[1].attributes('target')).toBe('_blank')
+    expect(links[1].attributes('rel')).toContain('noopener')
+    expect(links[1].text()).toContain('原始碼')
+  })
+
+  it('沒有原始碼連結時只顯示前往專案', () => {
+    expect(mount(SiteCard, { props }).findAll('a')).toHaveLength(1)
+  })
+
   it('沒有技術標籤時顯示提示文字', () => {
     const wrapper = mount(SiteCard, { props: { ...props, techStack: [] } })
     expect(wrapper.text()).toContain('無相關技術資訊')

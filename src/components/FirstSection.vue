@@ -1,6 +1,7 @@
 <!-- components/FirstSection.vue -->
 <template>
   <section
+    id="top"
     class="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-300 via-purple-50 to-blue-300 relative overflow-hidden p-4"
   >
     <!-- Canvas 雪花背景 -->
@@ -36,7 +37,19 @@
         ></span>
       </h1>
 
-      <p class="text-base sm:text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+      <p
+        ref="roleRef"
+        class="inline-flex flex-wrap justify-center gap-x-2 text-sm sm:text-base font-medium text-indigo-700 bg-white/60 backdrop-blur-sm px-4 py-1.5 rounded-2xl sm:rounded-full mb-6 opacity-0"
+      >
+        <span>{{ profile.role }}</span>
+        <span aria-hidden="true" class="text-indigo-300">|</span>
+        <span>{{ profile.experience }}</span>
+        <!-- 手機版技術焦點換到第二行 -->
+        <span aria-hidden="true" class="hidden sm:inline text-indigo-300">|</span>
+        <span class="w-full sm:w-auto">{{ profile.focus }}</span>
+      </p>
+
+      <p class="description text-base sm:text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
         <span class="sr-only">{{ DESC_TEXT }}</span>
         <span ref="descRef" aria-hidden="true"></span>
       </p>
@@ -57,6 +70,16 @@
         >
           技能介紹
         </a>
+        <a
+          :href="profile.github"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 sm:px-4 py-3 border-2 border-black text-black rounded-full hover:bg-black hover:text-white transition duration-300"
+        >
+          <GithubIcon class="w-5 h-5" />
+          <span class="sm:hidden">GitHub</span>
+        </a>
       </div>
     </div>
   </section>
@@ -68,13 +91,16 @@ import gsap from "gsap";
 import { TextPlugin } from "gsap/TextPlugin";
 import me from "../assets/me.webp";
 import { whenAppLoaded } from "../utils/appLoaded";
+import { prefersReducedMotion } from "../utils/motion";
+import { profile } from "../data/profile";
+import GithubIcon from "./GithubIcon.vue";
 
 // 註冊 GSAP TextPlugin
 gsap.registerPlugin(TextPlugin);
 
 // 打字動畫文字（同時提供給螢幕閱讀器）
 const TITLE_TEXT = "Hello, 我是 ";
-const TITLE_NAME = "邦晉";
+const TITLE_NAME = profile.name;
 const DESC_TEXT =
   "熱愛創造優雅的網頁體驗，專注於前端開發與使用者介面設計。\n用程式碼實現創意，讓每個專案都充滿生命力。";
 
@@ -102,6 +128,7 @@ const titleTextRef = ref(null);
 const titleSpanRef = ref(null);
 const descRef = ref(null);
 const buttonsRef = ref(null);
+const roleRef = ref(null);
 const avatarRef = ref(null);
 
 let textTimeline = null;
@@ -281,7 +308,7 @@ const initTextAnimation = () => {
   // 0. 頭像圓形：從小到大彈出
   textTimeline
     .to(avatarRef.value, {
-      duration: 0.8,
+      duration: 0.6,
       opacity: 1,
       scale: 1,
       ease: "back.out(1.7)",
@@ -291,7 +318,7 @@ const initTextAnimation = () => {
     .to(
       titleTextRef.value,
       {
-        duration: 1,
+        duration: 0.6,
         text: TITLE_TEXT,
         ease: "none",
       },
@@ -302,25 +329,28 @@ const initTextAnimation = () => {
     .to(
       titleSpanRef.value,
       {
-        duration: 0.5,
+        duration: 0.3,
         text: TITLE_NAME,
         ease: "none",
       },
       "-=0.3"
     )
 
-    // 3. 描述段落（分兩行）
+    // 3. 職稱標籤淡入
+    .to(roleRef.value, { duration: 0.4, opacity: 1 }, "-=0.1")
+
+    // 4. 描述段落（分兩行）
     .to(
       descRef.value,
       {
-        duration: 2,
+        duration: 1.2,
         text: DESC_TEXT,
         ease: "none",
       },
-      "-=0.3"
+      "<"
     )
 
-    // 4. 按鈕淡入
+    // 5. 按鈕與描述同時淡入，不必等打字結束
     .to(
       buttonsRef.value,
       {
@@ -329,12 +359,28 @@ const initTextAnimation = () => {
         y: 0,
         ease: "back.out(1.7)",
       },
-      "-=0.5"
+      "<"
     );
+};
+
+// 減少動態效果：直接顯示完整內容，不播放動畫
+const showStatic = () => {
+  titleTextRef.value.textContent = TITLE_TEXT;
+  titleSpanRef.value.textContent = TITLE_NAME;
+  descRef.value.textContent = DESC_TEXT;
+  for (const el of [avatarRef.value, roleRef.value, buttonsRef.value]) {
+    el.style.opacity = "1";
+    el.style.transform = "none";
+  }
 };
 
 // ========== Vue 生命週期 ==========
 onMounted(() => {
+  if (prefersReducedMotion()) {
+    showStatic();
+    return;
+  }
+
   initSnow();
 
   // 等 Loading 畫面結束（頁面可見）後再開始文字動畫，
@@ -366,7 +412,7 @@ onUnmounted(() => {
 
 <style scoped>
 /* 保持描述文字的換行 */
-p {
+.description {
   white-space: pre-line;
 }
 </style>
