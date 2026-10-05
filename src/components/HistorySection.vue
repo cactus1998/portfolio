@@ -2,18 +2,14 @@
   <section
     ref="sectionRef"
     id="history"
-    class="min-h-screen py-12 lg:py-24 px-6 sm:px-8 lg:px-12 bg-[#f0f0f3]"
+    class="min-h-screen py-20 lg:py-28 px-6 sm:px-8 lg:px-12 bg-white"
   >
-          <div class="max-w-7xl mx-auto w-full">
-      <!-- 標題 -->
-      <div class="mb-12 lg:mb-20 text-center">
-        <h2 class="text-3xl lg:text-4xl font-bold bg-black bg-clip-text text-transparent mb-4">
-          工作歷程
-        </h2>
-        <p class="text-gray-600 mt-4 lg:mt-6 text-base lg:text-lg">前端開發經驗與技術</p>
+    <div class="max-w-7xl mx-auto w-full">
+      <SectionHeader eyebrow="Experience" title="工作歷程" subtitle="前端開發經驗與技術" />
+      <div class="-mt-6 lg:-mt-10 mb-12 text-center">
         <button
           type="button"
-          class="toggle-all mt-6 text-sm font-medium text-purple-700 hover:text-purple-900 underline underline-offset-4 bg-transparent border-0 p-0"
+          class="toggle-all text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
           @click="toggleAll"
         >
           {{ allExpanded ? '全部收起' : '全部展開' }}
@@ -23,25 +19,22 @@
       <!-- 時間軸容器 -->
       <div class="relative">
         <!-- 動態時間軸背景 -->
-        <div ref="timelineRef" class="absolute top-8 left-[15px] lg:left-1/2 w-1.5 h-full bg-gradient-to-b from-purple-200 via-indigo-200 to-purple-200 transform lg:-translate-x-1/2">
+        <div ref="timelineRef" class="absolute top-8 left-[15px] lg:left-1/2 w-0.5 h-full bg-gray-200 transform lg:-translate-x-1/2">
           <div
-            class="absolute left-0 w-full bg-gradient-to-b from-purple-500 to-indigo-500 transition-all duration-300 ease-out"
+            class="timeline-progress absolute left-0 w-full bg-indigo-500 transition-all duration-300 ease-out"
             :style="{ height: `${scrollProgress * 100}%` }"
           ></div>
         </div>
 
         <!-- 工作項目 -->
-        <div class="space-y-16">
+        <div class="space-y-12">
           <div v-for="(job, index) in jobs" :key="job.company" class="relative">
-            <!-- 時間點 -->
+            <!-- 時間點：時間軸進度經過後亮起 -->
             <div
-              class="absolute left-2 lg:left-1/2 w-5 h-5 bg-white border-4 rounded-full transform lg:-translate-x-2.5 mt-3 transition-all duration-300"
-              :style="{
-                borderColor: index === 0 ? 'rgb(147, 51, 234)' : 'rgb(79, 70, 229)',
-                boxShadow: scrollProgress > index / jobs.length
-                  ? `0 0 20px ${index === 0 ? 'rgba(147, 51, 234, 0.5)' : 'rgba(79, 70, 229, 0.5)'}`
-                  : 'none'
-              }"
+              :class="[
+                'absolute left-[9px] lg:left-1/2 w-3.5 h-3.5 rounded-full border-2 transform lg:-translate-x-1/2 mt-8 transition-colors duration-300',
+                scrollProgress > index / jobs.length ? 'bg-indigo-500 border-indigo-500 ring-4 ring-indigo-100' : 'bg-white border-gray-300'
+              ]"
             ></div>
 
             <!-- 卡片 -->
@@ -52,84 +45,67 @@
                 index % 2 === 0 ? 'lg:pr-12' : 'lg:ml-auto lg:pl-12'
               ]"
             >
-              <div
-                class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-purple-100 group"
-                :style="{
-                  transform: `translateY(${Math.max(0, (index - scrollProgress * jobs.length) * 20)}px)`,
-                  opacity: Math.max(0.5, 1 - Math.abs(index - scrollProgress * jobs.length) * 0.2)
-                }"
-              >
-                <!-- 頂部漸層線 -->
-                <div class="h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
-
-                <div class="p-8">
+              <div class="bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                <div class="p-6 lg:p-8">
                   <!-- 標題區 -->
-                  <div class="flex justify-between items-start gap-2 lg:gap-4 mb-3">
-                    <h3 class="text-lg lg:text-2xl font-bold text-gray-900 flex-1 group-hover:text-purple-600 transition-colors">
+                  <div class="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1">
+                    <h3 class="text-lg lg:text-xl font-semibold text-gray-900">
                       {{ job.title }}
                     </h3>
-                    <span
-                      class="font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-500
-                            px-2 py-1 text-xs sm:px-3 sm:py-1 sm:text-sm lg:px-4 lg:py-2 lg:text-base
-                            rounded-full whitespace-nowrap shadow-sm"
-                    >
-                      {{ job.duration }}
-                    </span>
+                    <p class="text-sm font-medium text-gray-500 tabular-nums whitespace-nowrap">
+                      {{ job.duration }}<span class="text-gray-400"> · {{ job.period }}</span>
+                    </p>
                   </div>
 
                   <!-- 公司資訊 -->
-                  <div class="mb-5 pb-4 border-b border-gray-100">
-                    <p class="text-lg font-semibold text-gray-800 mb-1">{{ job.company }}</p>
-                  </div>
+                  <p class="mt-1 text-base font-medium text-indigo-700">{{ job.company }}</p>
 
                   <!-- 技能標籤 -->
-                  <div class="flex flex-wrap gap-2 mb-6">
+                  <div class="flex flex-wrap gap-1.5 mt-5">
                     <span
-                      v-for="(tag, idx) in job.highlights"
-                      :key="idx"
-                      class="text-xs font-semibold px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border border-purple-200"
+                      v-for="tag in job.highlights"
+                      :key="tag"
+                      class="px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700"
                     >
                       {{ tag }}
                     </span>
                   </div>
 
                   <!-- 職責描述 -->
-                  <div class="space-y-3">
+                  <div class="mt-5">
                     <!-- 展開 / 收合按鈕 -->
-                    <el-button
-                      type="primary"
-                      plain
-                      class="job-toggle !bg-gradient-to-r !from-purple-600 !to-indigo-600 !text-white hover:!from-purple-600 hover:!to-indigo-600 transition-all flex items-center gap-2"
+                    <button
+                      type="button"
+                      class="job-toggle inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                      :aria-expanded="expanded.has(index)"
                       @click="toggleDetails(index)"
                     >
                       <span>{{ expanded.has(index) ? '收起內容' : '展開更多' }}</span>
-
-                      <!-- 旋轉箭頭 -->
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
                         class="w-4 h-4 transition-transform duration-300"
                         :class="{ 'rotate-180': expanded.has(index) }"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         stroke-width="2"
+                        aria-hidden="true"
                       >
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
-                    </el-button>
+                    </button>
 
                     <!-- 展開內容 -->
                     <el-collapse-transition>
                       <div
                         v-if="expanded.has(index)"
-                        class="mt-4 space-y-3 border-t border-gray-100 pt-4"
+                        class="mt-4 space-y-2.5 border-t border-gray-100 pt-4"
                       >
                         <div
                           v-for="(desc, idx) in job.description"
                           :key="idx"
-                          class="flex gap-3 text-gray-700 text-sm leading-relaxed"
+                          class="flex gap-3 text-gray-600 text-sm leading-relaxed"
                         >
-                          <span class="text-purple-500 font-bold mt-1 flex-shrink-0">▸</span>
+                          <span class="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" aria-hidden="true"></span>
                           <p>{{ desc }}</p>
                         </div>
                       </div>
@@ -147,10 +123,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { ElButton, ElCollapseTransition } from 'element-plus'
-import 'element-plus/es/components/button/style/css'
+import { ElCollapseTransition } from 'element-plus'
 import 'element-plus/es/components/collapse-transition/style/css'
 import { jobs } from '../data/jobs'
+import SectionHeader from './SectionHeader.vue'
 
 const scrollProgress = ref(0)
 const sectionRef = ref<HTMLElement | null>(null)

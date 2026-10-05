@@ -65,14 +65,23 @@ describe('skillBlocks 技能資料', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('每個區塊都有樣式設定與至少一個標籤', () => {
+  it('每個區塊都有標題、圖示與分組標籤', () => {
     skillBlocks.forEach((block) => {
-      for (const key of ['title', 'icon', 'color', 'borderColor', 'textColor', 'tagColor']) {
-        expect(isTrimmedNonEmpty(block[key])).toBe(true)
-      }
-      const tags = block.skills.flatMap((s) => s.tags)
-      expect(tags.length).toBeGreaterThan(0)
-      tags.forEach((tag) => expect(isTrimmedNonEmpty(tag)).toBe(true))
+      expect(isTrimmedNonEmpty(block.title)).toBe(true)
+      expect(['code', 'server', 'tools', 'spark']).toContain(block.icon)
+      expect(block.skills.length).toBeGreaterThan(0)
+      block.skills.forEach((group) => {
+        expect(isTrimmedNonEmpty(group.label)).toBe(true)
+        expect(group.tags.length).toBeGreaterThan(0)
+        group.tags.forEach((tag) => expect(isTrimmedNonEmpty(tag)).toBe(true))
+      })
+    })
+  })
+
+  it('同一區塊內分組名稱不重複（SkillSection 以 label 當 key）', () => {
+    skillBlocks.forEach((block) => {
+      const labels = block.skills.map((g) => g.label)
+      expect(new Set(labels).size).toBe(labels.length)
     })
   })
 })

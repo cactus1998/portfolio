@@ -20,14 +20,12 @@ export interface Job {
   description: string[]
 }
 
+export type SkillIcon = 'code' | 'server' | 'tools' | 'spark'
+
 export interface SkillBlock {
   id: number
   title: string
-  icon: string
-  /** 以下皆為 Tailwind class */
-  color: string
-  borderColor: string
-  textColor: string
-  tagColor: string
-  skills: { tags: string[] }[]
+  icon: SkillIcon
+  /** 依類別分組的技能標籤 */
+  skills: { label: string; tags: string[] }[]
 }

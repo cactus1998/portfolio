@@ -58,7 +58,9 @@ const createMockContext = () => ({
   scale: vi.fn(),
   beginPath: vi.fn(),
   arc: vi.fn(),
-  fill: vi.fn()
+  fill: vi.fn(),
+  fillRect: vi.fn(),
+  createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() }))
 })
 HTMLCanvasElement.prototype.getContext = vi.fn(function () {
   this.__ctx ??= createMockContext()

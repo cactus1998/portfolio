@@ -1,18 +1,11 @@
 <!-- ProjectSection.vue -->
 <template>
-  <section id="projects" class="min-h-screen py-20 px-6 bg-[#f0f0f3]">
+  <section id="projects" class="min-h-screen py-20 lg:py-28 px-6 bg-gray-50">
     <div class="max-w-7xl mx-auto">
-      <h2
-        class="text-4xl font-bold text-center text-gray-800 mb-4 tracking-tight
-               drop-shadow-[2px_2px_4px_#ffffff]">
-        精選作品
-      </h2>
-      <p class="text-center text-gray-500 mb-16 text-lg">
-        探索我的創作旅程
-      </p>
+      <SectionHeader eyebrow="Projects" title="精選作品" subtitle="個人專案與課程練習作品" />
 
       <!-- 卡片排列 -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         <SiteCard
           v-for="site in sites"
           :key="site.link"
@@ -30,5 +23,6 @@
 
 <script setup lang="ts">
 import SiteCard from './SiteCard.vue'
+import SectionHeader from './SectionHeader.vue'
 import { sites } from '../data/sites'
 </script>

@@ -1,49 +1,61 @@
 <template>
-  <footer id="contact" ref="footerRef" class="relative bg-gray-900 h-[650px] text-white overflow-hidden">
+  <footer
+    id="contact"
+    ref="footerRef"
+    class="relative overflow-hidden bg-[#070b14] text-white"
+    @mousemove="handleMouseMove"
+    @mouseleave="handleMouseLeave"
+  >
+    <!-- 背景光暈，讓深色底不會太單調 -->
+    <div
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(99,102,241,0.18),transparent_60%)]"
+    ></div>
+
     <!-- Three.js Canvas 背景 -->
     <canvas ref="canvasRef" class="absolute inset-0 w-full h-full"></canvas>
 
-    <!-- Footer 內容（置中且重疊於背景上） -->
+    <!-- 文字可讀性遮罩：桌機由左往右淡出，手機整片壓暗 -->
     <div
-      class="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6"
-    >
-      <!-- 半透明底板，避免天體經過時遮住文字 -->
-      <div class="max-w-4xl w-full bg-black/50 backdrop-blur-sm rounded-2xl px-6 py-8 sm:px-10 border border-white/10">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div>
-            <h3 class="text-2xl font-bold mb-4">關於我</h3>
-            <p class="text-gray-300">
-              感謝瀏覽，如有任何合作機會，歡迎來信詢問！
-            </p>
-          </div>
-          <div>
-            <h3 class="text-2xl font-bold mb-4">聯絡方式</h3>
-            <ul class="space-y-2 text-gray-300">
-              <li>
-                <a
-                  :href="`mailto:${EMAIL}`"
-                  class="font-normal text-gray-300 hover:text-white transition-colors"
-                >
-                  {{ EMAIL }}
-                </a>
-              </li>
-              <li>
-                <a
-                  :href="profile.github"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="inline-flex items-center gap-2 font-normal text-gray-300 hover:text-white transition-colors"
-                >
-                  <GithubIcon class="w-5 h-5" />
-                  github.com/cactus1998
-                </a>
-              </li>
-            </ul>
+      class="pointer-events-none absolute inset-0 bg-[#070b14]/60 lg:bg-transparent lg:bg-gradient-to-r lg:from-[#070b14] lg:via-[#070b14]/60 lg:to-transparent"
+    ></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 min-h-[600px] flex flex-col">
+      <div class="flex-1 flex items-center py-24">
+        <div class="max-w-xl">
+          <p class="text-xs font-semibold tracking-[0.3em] uppercase text-indigo-300 mb-4">Contact</p>
+          <h2 class="text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
+            有合作機會？<br />歡迎與我聯繫
+          </h2>
+          <p class="mt-6 text-base sm:text-lg text-gray-400 leading-relaxed">
+            感謝瀏覽。<br class="hidden sm:block" />如果你正在尋找前端工程師，或對作品有任何想法，都歡迎來信。
+          </p>
+
+          <div class="mt-10 flex flex-col sm:flex-row gap-3">
+            <a
+              :href="`mailto:${EMAIL}`"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white text-gray-900 font-medium hover:bg-indigo-100 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
+              </svg>
+              {{ EMAIL }}
+            </a>
+            <a
+              :href="profile.github"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white font-medium hover:bg-white/10 transition-colors"
+            >
+              <GithubIcon class="w-5 h-5" />
+              GitHub
+            </a>
           </div>
         </div>
-        <div class="border-t border-gray-700 pt-6 text-gray-400">
-          <p>© {{ copyrightYears }} Designed & Developed by Kent.</p>
-        </div>
+      </div>
+
+      <div class="border-t border-white/10 pt-6 pb-20 sm:pb-6 flex flex-col sm:flex-row gap-2 justify-between text-sm text-gray-500">
+        <p>© {{ copyrightYears }} Designed & Developed by Kent.</p>
+        <p>Built with Vue 3・TypeScript・Three.js</p>
       </div>
     </div>
   </footer>
@@ -64,8 +76,12 @@ interface Body {
   position: ThreeModule.Vector3;
   velocity: ThreeModule.Vector3;
   mass: number;
+  color: ThreeModule.Color;
   trailPositions: Float32Array;
+  trailColors: Float32Array;
   trailCount: number;
+  /** 上次更新軌跡漸層時的點數，點數沒變就不用重算 */
+  coloredCount: number;
 }
 
 const EMAIL = profile.email;
@@ -79,46 +95,55 @@ const footerRef = ref<HTMLElement | null>(null); // Footer DOM 元素引用
 
 // === Three.js 核心物件 ===
 // three.js 體積大，改為動態載入，不影響首屏
-let THREE: typeof ThreeModule;                   // 動態載入的 three 模組
-let scene: ThreeModule.Scene | undefined;           // 場景：所有 3D 物件的容器
+let THREE: typeof ThreeModule;                         // 動態載入的 three 模組
+let scene: ThreeModule.Scene | undefined;              // 場景：所有 3D 物件的容器
 let camera: ThreeModule.PerspectiveCamera | undefined; // 相機：定義觀察視角
 let renderer: ThreeModule.WebGLRenderer | undefined;   // 渲染器：將場景渲染到 Canvas 上
-let animationId: number | null = null;              // 動畫循環 ID，用於取消動畫
+let starField: ThreeModule.Group | undefined;          // 星空，緩慢自轉製造景深
+let animationId: number | null = null;                 // 動畫循環 ID，用於取消動畫
 
 // === 三體系統數據 ===
-let bodies: Body[] = [];  // 存儲三個天體的資訊（位置、速度、網格等）
-let trails: ThreeModule.Line[] = [];  // 存儲三個天體的軌跡線條
+let bodies: Body[] = [];             // 存儲三個天體的資訊（位置、速度、網格等）
+let trails: ThreeModule.Line[] = []; // 存儲三個天體的軌跡線條
 
 // === 三體初始參數 ===
+// 配色取自網站主色：靛藍、紫、青
 const bodyParams: { position: Vec3; velocity: Vec3; color: number; mass: number }[] = [
   {
     position: [5, 0, 0],   // 初始位置 (x, y, z)
     velocity: [0, 0.1, 1], // 初始速度向量
-    color: 0x00ffff,       // 顏色：青色 (十六進制)
+    color: 0x818cf8,       // 顏色：靛藍
     mass: 30               // 質量：用於引力計算
   },
   {
     position: [-5, 0, 0],
     velocity: [0, 0.5, -2],
-    color: 0xff6b6b,       // 顏色：紅色
+    color: 0xc084fc,       // 顏色：紫
     mass: 3
   },
   {
     position: [0, 5, 0],
     velocity: [-2, 0, 0],
-    color: 0xffd93d,       // 顏色：黃色
+    color: 0x67e8f9,       // 顏色：青
     mass: 2
   }
 ];
 
 // === 物理模擬參數 ===
-const G = 1;             // 引力常數：控制引力強度（值越大引力越強）
-const dt = 0.048;        // 每一步模擬的時間步長
+const G = 1;               // 引力常數：控制引力強度（值越大引力越強）
+const dt = 0.048;          // 每一步模擬的時間步長
 const STEP_MS = 1000 / 60; // 固定每 1/60 秒模擬一步，高更新率螢幕也不會變快
 const MAX_FRAME_MS = 100;  // 單幀最大補償時間，避免切回分頁時一次模擬太多步
-const BOUNDARY = 17;     // 邊界範圍：天體活動的最大半徑
-const DAMPING = 0.5;     // 邊界反彈阻尼：能量損失係數（<1 表示反彈時損失能量）
-const TRAIL_LENGTH = 400; // 軌跡最多保留的點數
+const BOUNDARY = 17;       // 邊界範圍：天體活動的最大半徑
+const DAMPING = 0.5;       // 邊界反彈阻尼：能量損失係數（<1 表示反彈時損失能量）
+const TRAIL_LENGTH = 400;  // 軌跡最多保留的點數
+
+// === 畫面參數 ===
+const CAMERA_RADIUS = 26;    // 相機繞行半徑
+const CAMERA_HEIGHT = 12;    // 相機高度
+const PARALLAX = 3;          // 滑鼠視差的最大位移
+const DESKTOP_WIDTH = 1024;  // 桌機寬度以上，天體系統往右移，讓出左側給文字
+const DESKTOP_SHIFT = 0.22;  // 往右移動的比例（畫面寬度）
 
 // === 重複使用的暫存向量，避免每幀建立新物件 ===
 let tempDiff: ThreeModule.Vector3;
@@ -133,6 +158,10 @@ let accumulator = 0;
 let visibilityObserver: IntersectionObserver | null = null;
 let idleId: number | null = null;
 let unmounted = false;
+
+// 滑鼠位置（-1 ~ 1），相機會緩慢跟隨，產生視差
+const mouse = { x: 0, y: 0 };
+const parallax = { x: 0, y: 0 };
 
 // === Vue 生命週期 ===
 onMounted(() => {
@@ -170,11 +199,15 @@ onUnmounted(() => {
   stop();
 
   if (scene) {
-    // 釋放所有幾何體與材質
+    // 釋放所有幾何體、材質與貼圖
     scene.traverse((obj) => {
-      if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points)) return;
+      if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points || obj instanceof THREE.Sprite)) return;
       obj.geometry.dispose();
-      (Array.isArray(obj.material) ? obj.material : [obj.material]).forEach((m) => m.dispose());
+      const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+      materials.forEach((m: ThreeModule.Material & { map?: ThreeModule.Texture | null }) => {
+        m.map?.dispose();
+        m.dispose();
+      });
     });
   }
   if (renderer) {
@@ -221,6 +254,37 @@ function stop() {
 }
 
 /**
+ * 產生放射狀漸層貼圖，用於天體光暈與星星（取代多層球體，邊緣更柔和）
+ */
+function createGlowTexture(stops: [number, string][]): ThreeModule.CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    stops.forEach(([offset, color]) => gradient.addColorStop(offset, color));
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * 桌機版把天體系統往右移，讓左側文字區乾淨
+ */
+function applyViewOffset(width: number, height: number) {
+  if (!camera) return;
+  if (width >= DESKTOP_WIDTH) {
+    camera.setViewOffset(width, height, -width * DESKTOP_SHIFT, 0, width, height);
+  } else {
+    camera.clearViewOffset();
+  }
+}
+
+/**
  * 初始化 Three.js 場景
  */
 function initThree() {
@@ -233,23 +297,16 @@ function initThree() {
   tempVec = new THREE.Vector3();
 
   // === 創建場景 ===
+  // 背景透明，由 footer 的 CSS 漸層負責底色
   const newScene = new THREE.Scene();
   scene = newScene;
-  // background: 場景背景色（深黑色）
-  newScene.background = new THREE.Color(0x0a0a0a);
 
   // === 創建透視相機 ===
   // 參數：視野角度(FOV)、長寬比、近裁剪面、遠裁剪面
-  camera = new THREE.PerspectiveCamera(
-    75,              // FOV：視野角度，越大看到的範圍越廣
-    width / height,  // aspect：長寬比，通常是 canvas 的寬高比
-    0.1,             // near：近裁剪面，小於此距離的物體不會被渲染
-    1000             // far：遠裁剪面，大於此距離的物體不會被渲染
-  );
-  // 設定相機位置 (x, y, z)
-  camera.position.set(0, 15, 25);
-  // 讓相機看向場景中心
+  camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+  camera.position.set(0, CAMERA_HEIGHT, CAMERA_RADIUS);
   camera.lookAt(0, 0, 0);
+  applyViewOffset(width, height);
 
   // === 創建 WebGL 渲染器 ===
   renderer = new THREE.WebGLRenderer({
@@ -257,7 +314,6 @@ function initThree() {
     antialias: true,  // 啟用抗鋸齒，讓邊緣更平滑
     alpha: true       // 啟用透明背景
   });
-  // 設定渲染器大小
   renderer.setSize(width, height);
   // 設定像素比率，避免高 DPI 螢幕模糊（最高 2 倍）
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -265,148 +321,150 @@ function initThree() {
   // 添加星空背景
   addStars(newScene);
 
-  // === 三個天體共用的幾何體 ===
-  // SphereGeometry(半徑, 水平分段數, 垂直分段數)
-  // 分段數越高，球體越圓滑，但性能消耗越大
-  const bodyGeometry = new THREE.SphereGeometry(0.6, 18, 18);
-  // 三層光暈：由小而亮到大而淡，模擬星體輻射
-  const glowLayers = [
-    { geometry: new THREE.SphereGeometry(1.0, 32, 32), opacity: 0.5 },
-    { geometry: new THREE.SphereGeometry(1.6, 32, 32), opacity: 0.2 },
-    { geometry: new THREE.SphereGeometry(2.4, 32, 32), opacity: 0.06 }
-  ];
+  // === 天體共用資源 ===
+  const coreGeometry = new THREE.SphereGeometry(0.32, 24, 24);
+  const glowTexture = createGlowTexture([
+    [0, 'rgba(255,255,255,1)'],
+    [0.2, 'rgba(255,255,255,0.55)'],
+    [0.5, 'rgba(255,255,255,0.12)'],
+    [1, 'rgba(255,255,255,0)']
+  ]);
 
   // === 創建三個天體 ===
   bodyParams.forEach((params) => {
-    // --- 主體球體 ---
-    // MeshBasicMaterial：基礎材質，不受光照影響
-    const material = new THREE.MeshBasicMaterial({
-      color: params.color  // 設定顏色
+    const color = new THREE.Color(params.color);
+    // 質量越大，天體看起來越大
+    const scale = 0.8 + Math.cbrt(params.mass) * 0.2;
+
+    // --- 核心：接近白色，中心最亮 ---
+    const coreMaterial = new THREE.MeshBasicMaterial({
+      color: color.clone().lerp(new THREE.Color(0xffffff), 0.7)
     });
-
-    // 創建網格物件（Geometry + Material）
-    const mesh = new THREE.Mesh(bodyGeometry, material);
-
-    // 設定初始位置
+    const mesh = new THREE.Mesh(coreGeometry, coreMaterial);
+    mesh.scale.setScalar(scale);
     mesh.position.fromArray(params.position);
-    // 將網格添加到場景中
     newScene.add(mesh);
 
-    // --- 光暈 ---
-    glowLayers.forEach(({ geometry, opacity }) => {
-      const glowMaterial = new THREE.MeshBasicMaterial({
-        color: params.color,
-        transparent: true,                // 啟用透明度
-        opacity,                          // 不透明度 (0-1)
-        blending: THREE.AdditiveBlending, // 加法混合：顏色相加，產生發光效果
-        depthWrite: false                 // 禁用深度寫入，避免遮擋其他透明物體
-      });
-      const glow = new THREE.Mesh(geometry, glowMaterial);
-      glow.renderOrder = 1; // 渲染順序：數字越小越先渲染
-      mesh.add(glow);       // 添加為子物件，會跟隨主體移動
+    // --- 光暈：內層較亮、外層大而淡，使用加法混合產生發光感 ---
+    [
+      { size: 3.2, opacity: 1 },
+      { size: 10, opacity: 0.45 }
+    ].forEach(({ size, opacity }) => {
+      const glow = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: glowTexture,
+          color,
+          transparent: true,
+          opacity,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        })
+      );
+      glow.scale.setScalar(size);
+      mesh.add(glow); // 添加為子物件，會跟隨主體移動
     });
 
-    // --- 創建軌跡線 ---
+    // --- 軌跡線 ---
     // 預先配置固定大小的 buffer，之後只更新內容與繪製範圍
     const trailPositions = new Float32Array(TRAIL_LENGTH * 3);
-    const trailAttribute = new THREE.BufferAttribute(trailPositions, 3);
-    trailAttribute.setUsage(THREE.DynamicDrawUsage);
+    // RGBA：顏色固定為天體顏色，只用 alpha 做漸層
+    const trailColors = new Float32Array(TRAIL_LENGTH * 4);
+    const positionAttribute = new THREE.BufferAttribute(trailPositions, 3);
+    const colorAttribute = new THREE.BufferAttribute(trailColors, 4);
+    positionAttribute.setUsage(THREE.DynamicDrawUsage);
+    colorAttribute.setUsage(THREE.DynamicDrawUsage);
 
     const trailGeometry = new THREE.BufferGeometry();
-    trailGeometry.setAttribute('position', trailAttribute);
+    trailGeometry.setAttribute('position', positionAttribute);
+    trailGeometry.setAttribute('color', colorAttribute);
     trailGeometry.setDrawRange(0, 0);
 
-    // LineBasicMaterial：線條材質
+    // 頂點 alpha 由透明漸變到不透明，背景是 CSS 漸層，因此不用加法混合
     const trailMaterial = new THREE.LineBasicMaterial({
-      color: params.color,
+      vertexColors: true,
       transparent: true,
-      opacity: 0.5,
-      depthWrite: false, // 禁用深度寫入，避免被光暈遮擋
-      depthTest: true    // 啟用深度測試，仍然會被實體物件遮擋
+      opacity: 0.85,
+      depthWrite: false
     });
 
-    // Line：線條物件
     const trail = new THREE.Line(trailGeometry, trailMaterial);
     trail.frustumCulled = false; // 軌跡點持續變動，不做視錐剔除
-    trail.renderOrder = 999; // 設定最高渲染優先級，確保軌跡最後繪製
     newScene.add(trail);
 
-    // 將天體資訊存入陣列
     bodies.push({
-      mesh,                                                  // 網格物件
-      position: new THREE.Vector3().fromArray(params.position), // 當前位置
-      velocity: new THREE.Vector3().fromArray(params.velocity), // 當前速度
-      mass: params.mass,                                     // 質量
-      trailPositions,                                        // 軌跡點 buffer
-      trailCount: 0                                          // 目前軌跡點數
+      mesh,
+      position: new THREE.Vector3().fromArray(params.position),
+      velocity: new THREE.Vector3().fromArray(params.velocity),
+      mass: params.mass,
+      color,
+      trailPositions,
+      trailColors,
+      trailCount: 0,
+      coloredCount: 0
     });
 
-    trails.push(trail); // 存儲軌跡線
+    trails.push(trail);
     forces.push(new THREE.Vector3());
   });
-
-  // === 添加環境光 ===
-  // AmbientLight：均勻照亮場景中的所有物體
-  const ambientLight = new THREE.AmbientLight(0x404040); // 暗灰色環境光
-  newScene.add(ambientLight);
 }
 
 /**
- * 添加星空背景
+ * 添加星空背景：大量細小星星加上少數明亮星星，兩層製造層次
  */
 function addStars(target: ThreeModule.Scene) {
-  // BufferGeometry：用於創建點雲
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 3000; // 星星數量
+  const group = new THREE.Group();
+  const starTexture = createGlowTexture([
+    [0, 'rgba(255,255,255,1)'],
+    [0.4, 'rgba(255,255,255,0.4)'],
+    [1, 'rgba(255,255,255,0)']
+  ]);
 
-  // Float32Array：高效能的浮點數陣列
-  const positions = new Float32Array(starCount * 3); // 每個點 3 個座標 (x, y, z)
-  const sizes = new Float32Array(starCount);         // 每個點的大小
-  const colors = new Float32Array(starCount * 3);    // 每個點的顏色 (r, g, b)
+  const layers = [
+    { count: 1800, size: 0.35, opacity: 0.55 },
+    { count: 160, size: 0.9, opacity: 0.9 }
+  ];
 
-  // 使用球面座標均勻分佈星星
-  for (let i = 0; i < starCount; i++) {
-    // theta：水平角度 (0 到 2π)
-    const theta = Math.random() * Math.PI * 2;
-    // phi：垂直角度 (0 到 π)，使用 acos 實現均勻分佈
-    const phi = Math.acos(Math.random() * 2 - 1);
-    // radius：距離中心的半徑 (50-90)
-    const radius = 50 + Math.random() * 40;
+  layers.forEach(({ count, size, opacity }) => {
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
 
-    // 球面座標轉換為笛卡爾座標
-    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);     // x
-    positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta); // y
-    positions[i * 3 + 2] = radius * Math.cos(phi);                   // z
+    // 使用球面座標均勻分佈星星
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const radius = 60 + Math.random() * 40;
 
-    // 大小：固定較小的範圍 (0.05-0.15)，避免星星過大
-    sizes[i] = 0.05 + Math.random() * 0.1;
+      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = radius * Math.cos(phi);
 
-    // 顏色：模擬星星的色溫變化（藍白到橙白）
-    const colorTemp = 0.85 + Math.random() * 0.15;
-    colors[i * 3] = colorTemp;            // R
-    colors[i * 3 + 1] = colorTemp * 0.95; // G (稍微降低綠色)
-    colors[i * 3 + 2] = 1.0;              // B (藍色保持最高)
-  }
+      // 亮度與色溫略有差異：偏藍白
+      const brightness = 0.6 + Math.random() * 0.4;
+      colors[i * 3] = brightness * 0.9;
+      colors[i * 3 + 1] = brightness * 0.93;
+      colors[i * 3 + 2] = brightness;
+    }
 
-  // 設定幾何體屬性
-  // BufferAttribute：將數據綁定到幾何體
-  starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)); // 3 個值一組
-  starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));         // 1 個值一組
-  starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));       // 3 個值一組
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-  // PointsMaterial：點材質
-  const starMaterial = new THREE.PointsMaterial({
-    size: 0.1,              // 基礎大小
-    sizeAttenuation: true,  // 啟用距離衰減：遠的星星看起來更小
-    transparent: true,      // 啟用透明度
-    opacity: 0.9,           // 不透明度
-    vertexColors: true,     // 使用頂點顏色（每個點有自己的顏色）
-    blending: THREE.AdditiveBlending // 加法混合：產生發光效果
+    const material = new THREE.PointsMaterial({
+      size,
+      map: starTexture,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity,
+      vertexColors: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    group.add(new THREE.Points(geometry, material));
   });
 
-  // Points：點雲物件
-  const stars = new THREE.Points(starGeometry, starMaterial);
-  target.add(stars);
+  starField = group;
+  target.add(group);
 }
 
 /**
@@ -414,29 +472,23 @@ function addStars(target: ThreeModule.Scene) {
  * 結果寫入 forces 陣列（每個天體受到的總引力向量）
  */
 function calculateGravity() {
-  // 歸零力陣列
   forces.forEach((force) => force.set(0, 0, 0));
 
   // 計算每對天體之間的引力（避免重複計算）
   for (let i = 0; i < bodies.length; i++) {
     for (let j = i + 1; j < bodies.length; j++) {
-      // 計算兩天體之間的位置差向量
       tempDiff.subVectors(bodies[j].position, bodies[i].position);
-
-      // 計算距離（向量長度）
       const distance = tempDiff.length();
 
       // 避免除以零或距離過近導致的數值爆炸
       if (distance > 0.1) {
         // 牛頓萬有引力定律：F = G * m1 * m2 / r²
         const forceMagnitude = (G * bodies[i].mass * bodies[j].mass) / (distance * distance);
-
-        // 力向量 = 單位方向 × 大小
         const force = tempDiff.normalize().multiplyScalar(forceMagnitude);
 
         // 根據牛頓第三定律：作用力與反作用力
-        forces[i].add(force);  // 天體 i 受力指向天體 j
-        forces[j].sub(force);  // 天體 j 受力指向天體 i（反方向）
+        forces[i].add(force);
+        forces[j].sub(force);
       }
     }
   }
@@ -449,30 +501,24 @@ function stepBodies() {
   calculateGravity();
 
   bodies.forEach((body, index) => {
-    // === 更新速度 ===
-    // 牛頓第二定律：F = m * a，因此 a = F / m
+    // 牛頓第二定律：a = F / m，v = v + a * dt
     const acceleration = forces[index].divideScalar(body.mass);
-    // 速度更新：v = v + a * dt
     body.velocity.addScaledVector(acceleration, dt);
 
-    // === 更新位置 ===
     // 位置更新：s = s + v * dt
     body.position.addScaledVector(body.velocity, dt);
 
     // === 邊界檢測和反彈 ===
-    (['x', 'y', 'z'] as const).forEach(axis => {
+    (['x', 'y', 'z'] as const).forEach((axis) => {
       if (Math.abs(body.position[axis]) > BOUNDARY) {
-        // 將位置限制在邊界內
         body.position[axis] = Math.sign(body.position[axis]) * BOUNDARY;
-        // 反轉速度並添加阻尼（模擬能量損失）
         body.velocity[axis] *= -DAMPING;
       }
     });
 
     // === 添加向心力（讓天體傾向於回到中心）===
-    const distanceFromCenter = body.position.length(); // 距離中心的距離
-    if (distanceFromCenter > BOUNDARY * 0.7) { // 當距離超過邊界的 70%
-      // 計算指向中心的力
+    const distanceFromCenter = body.position.length();
+    if (distanceFromCenter > BOUNDARY * 0.7) {
       tempVec.copy(body.position).normalize().multiplyScalar(-0.5);
       body.velocity.addScaledVector(tempVec, dt);
     }
@@ -490,6 +536,22 @@ function stepBodies() {
 }
 
 /**
+ * 依目前點數重算軌跡漸層：最舊的點透明，越接近天體越不透明
+ */
+function updateTrailColors(body: Body) {
+  const count = body.trailCount;
+  const colors = body.trailColors;
+  for (let i = 0; i < count; i++) {
+    const t = (i + 1) / count;
+    colors[i * 4] = body.color.r;
+    colors[i * 4 + 1] = body.color.g;
+    colors[i * 4 + 2] = body.color.b;
+    colors[i * 4 + 3] = t * t;
+  }
+  body.coloredCount = count;
+}
+
+/**
  * 同步網格位置與軌跡線到 GPU
  */
 function syncBodies() {
@@ -498,6 +560,10 @@ function syncBodies() {
 
     const geometry = trails[index].geometry;
     geometry.attributes.position.needsUpdate = true;
+    if (body.coloredCount !== body.trailCount) {
+      updateTrailColors(body);
+      geometry.attributes.color.needsUpdate = true;
+    }
     geometry.setDrawRange(0, body.trailCount);
   });
 }
@@ -507,7 +573,6 @@ function syncBodies() {
  */
 function animate(now: number) {
   if (!renderer || !scene || !camera) return;
-  // 請求下一幀動畫
   animationId = requestAnimationFrame(animate);
 
   // 依實際經過時間，以固定步長推進物理模擬
@@ -519,17 +584,36 @@ function animate(now: number) {
   }
   syncBodies();
 
-  // === 相機緩慢旋轉 ===
-  // 使用時間計算旋轉角度
-  const time = Date.now() * 0.00005; // 時間係數：越小旋轉越慢
-  // 相機在 XZ 平面上做圓周運動
-  camera.position.x = Math.sin(time) * 25; // x = r * sin(θ)
-  camera.position.z = Math.cos(time) * 25; // z = r * cos(θ)
-  // 相機始終看向場景中心
+  // === 相機緩慢繞行，並跟隨滑鼠產生視差 ===
+  const time = Date.now() * 0.00005;
+  parallax.x += (mouse.x * PARALLAX - parallax.x) * 0.04;
+  parallax.y += (mouse.y * PARALLAX - parallax.y) * 0.04;
+  camera.position.set(
+    Math.sin(time) * CAMERA_RADIUS + parallax.x,
+    CAMERA_HEIGHT + parallax.y,
+    Math.cos(time) * CAMERA_RADIUS
+  );
   camera.lookAt(0, 0, 0);
 
-  // 渲染場景
+  if (starField) starField.rotation.y = time * 0.3;
+
   renderer.render(scene, camera);
+}
+
+/**
+ * 滑鼠移動：換算成 -1 ~ 1 的座標
+ */
+function handleMouseMove(e: MouseEvent) {
+  const footer = footerRef.value;
+  if (!footer) return;
+  const rect = footer.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+}
+
+function handleMouseLeave() {
+  mouse.x = 0;
+  mouse.y = 0;
 }
 
 /**
@@ -544,14 +628,12 @@ function handleResize() {
   const width = parent.clientWidth;
   const height = parent.clientHeight;
 
-  // 更新相機長寬比
+  // 更新相機長寬比與投影矩陣
   camera.aspect = width / height;
-  // 更新相機投影矩陣（長寬比改變後必須調用）
+  applyViewOffset(width, height);
   camera.updateProjectionMatrix();
 
-  // 更新渲染器大小
   renderer.setSize(width, height);
-  // 更新像素比率（處理不同 DPI 的螢幕）
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 }
 </script>

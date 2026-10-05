@@ -97,7 +97,7 @@ describe('HistorySection', () => {
   it('區塊還沒進入畫面時進度為 0，完全捲過後為 1', async () => {
     const spy = vi.spyOn(Element.prototype, 'getBoundingClientRect')
     const wrapper = mountSection()
-    const bar = () => wrapper.find('.from-purple-500.to-indigo-500.absolute').attributes('style')
+    const bar = () => wrapper.find('.timeline-progress').attributes('style')
 
     // 區塊在畫面下方
     spy.mockReturnValue(rect(5000, 8000))
@@ -118,7 +118,7 @@ describe('HistorySection', () => {
     const wrapper = mountSection()
     const section = wrapper.find('section').element
     const timeline = wrapper.find('.top-8').element
-    const cards = wrapper.findAll('.space-y-16 > div > div:nth-child(2)').map((c) => c.element)
+    const cards = wrapper.findAll('.space-y-12 > div > div:nth-child(2)').map((c) => c.element)
 
     // innerHeight 預設 768：section 在畫面中，時間軸頂端 568、最後一張卡片底部 1568
     vi.spyOn(section, 'getBoundingClientRect').mockReturnValue(rect(0, 2000))
@@ -132,7 +132,7 @@ describe('HistorySection', () => {
     // scrollOffset = 768 - 568 = 200；contentHeight = 1568 - 568 - 200 = 800
     // progress = 200 / (800 + 768)
     const expected = (200 / (800 + 768)) * 100
-    const style = wrapper.find('.from-purple-500.to-indigo-500.absolute').attributes('style')
+    const style = wrapper.find('.timeline-progress').attributes('style')
     expect(parseFloat(style.match(/height: ([\d.]+)%/)[1])).toBeCloseTo(expected, 5)
   })
 
