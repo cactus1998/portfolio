@@ -46,7 +46,7 @@
 
             <!-- 卡片 -->
             <div
-              :ref="el => (cardWrapperRefs[index] = el)"
+              :ref="(el) => (cardWrapperRefs[index] = el as HTMLElement | null)"
               :class="[
                 'lg:w-1/2 ml-10 lg:ml-0',
                 index % 2 === 0 ? 'lg:pr-12' : 'lg:ml-auto lg:pl-12'
@@ -145,7 +145,7 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElButton, ElCollapseTransition } from 'element-plus'
 import 'element-plus/es/components/button/style/css'
@@ -153,12 +153,12 @@ import 'element-plus/es/components/collapse-transition/style/css'
 import { jobs } from '../data/jobs'
 
 const scrollProgress = ref(0)
-const sectionRef = ref(null)
-const timelineRef = ref(null)
-const cardWrapperRefs = []
+const sectionRef = ref<HTMLElement | null>(null)
+const timelineRef = ref<HTMLElement | null>(null)
+const cardWrapperRefs: (HTMLElement | null)[] = []
 
 // 展開中的工作項目 index，最新一筆預設展開
-const expanded = ref(new Set([0]))
+const expanded = ref(new Set<number>([0]))
 
 const allExpanded = computed(() => expanded.value.size === jobs.length)
 
@@ -166,7 +166,7 @@ const toggleAll = () => {
   expanded.value = allExpanded.value ? new Set() : new Set(jobs.map((_, i) => i))
 }
 
-const toggleDetails = (index) => {
+const toggleDetails = (index: number) => {
   if (expanded.value.has(index)) {
     expanded.value.delete(index)
   } else {
@@ -208,7 +208,7 @@ const updateProgress = () => {
 }
 
 // 用 requestAnimationFrame 節流，每幀最多計算一次
-let rafId = null
+let rafId: number | null = null
 const handleScroll = () => {
   if (rafId) return
   rafId = requestAnimationFrame(() => {

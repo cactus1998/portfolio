@@ -99,17 +99,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import GithubIcon from './GithubIcon.vue'
 
-defineProps({
-  title: String,
-  description: String,
-  image: String,
-  link: String,
-  repo: String,
-  techStack: Array
-})
+import type { Site } from '../types'
+
+defineProps<Site>()
 </script>
 
 <style scoped>

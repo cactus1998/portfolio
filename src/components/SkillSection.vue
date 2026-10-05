@@ -59,14 +59,14 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { gsap } from 'gsap'
 import { skillBlocks } from '../data/skills'
 import { prefersReducedMotion } from '../utils/motion'
 
-const cardRefs = ref([])
-let observer = null
+const cardRefs = ref<HTMLElement[]>([])
+let observer: IntersectionObserver | null = null
 
 // 依卡片位置決定從哪個方向飛入
 const directions = [
@@ -87,10 +87,10 @@ onMounted(() => {
     (entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return
-        const card = entry.target
+        const card = entry.target as HTMLElement
         // v-for 的 ref 陣列不保證順序，改用 data-index 取得卡片位置
         const dir = directions[Number(card.dataset.index) % directions.length]
-        observer.unobserve(card)
+        observer?.unobserve(card)
         gsap.fromTo(
           card,
           { opacity: 0, x: dir.x, y: dir.y },
@@ -102,7 +102,7 @@ onMounted(() => {
   )
 
   cardRefs.value.forEach((card) => {
-    if (card) observer.observe(card)
+    if (card) observer?.observe(card)
   })
 })
 

@@ -49,12 +49,24 @@
   </footer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { whenAppLoaded } from '../utils/appLoaded';
 import { prefersReducedMotion } from '../utils/motion';
 import { profile } from '../data/profile';
 import GithubIcon from './GithubIcon.vue';
+import type * as ThreeModule from 'three';
+
+type Vec3 = [number, number, number];
+
+interface Body {
+  mesh: ThreeModule.Mesh;
+  position: ThreeModule.Vector3;
+  velocity: ThreeModule.Vector3;
+  mass: number;
+  trailPositions: Float32Array;
+  trailCount: number;
+}
 
 const EMAIL = profile.email;
 const START_YEAR = 2025;
@@ -62,23 +74,23 @@ const currentYear = new Date().getFullYear();
 const copyrightYears = currentYear > START_YEAR ? `${START_YEAR}-${currentYear}` : `${START_YEAR}`;
 
 // === Vue 響應式變數 ===
-const canvasRef = ref(null); // Canvas DOM 元素引用
-const footerRef = ref(null); // Footer DOM 元素引用
+const canvasRef = ref<HTMLCanvasElement | null>(null); // Canvas DOM 元素引用
+const footerRef = ref<HTMLElement | null>(null); // Footer DOM 元素引用
 
 // === Three.js 核心物件 ===
 // three.js 體積大，改為動態載入，不影響首屏
-let THREE;        // 動態載入的 three 模組
-let scene;        // 場景：所有 3D 物件的容器
-let camera;       // 相機：定義觀察視角
-let renderer;     // 渲染器：將場景渲染到 Canvas 上
-let animationId;  // 動畫循環 ID，用於取消動畫
+let THREE: typeof ThreeModule;                   // 動態載入的 three 模組
+let scene: ThreeModule.Scene | undefined;           // 場景：所有 3D 物件的容器
+let camera: ThreeModule.PerspectiveCamera | undefined; // 相機：定義觀察視角
+let renderer: ThreeModule.WebGLRenderer | undefined;   // 渲染器：將場景渲染到 Canvas 上
+let animationId: number | null = null;              // 動畫循環 ID，用於取消動畫
 
 // === 三體系統數據 ===
-let bodies = [];  // 存儲三個天體的資訊（位置、速度、網格等）
-let trails = [];  // 存儲三個天體的軌跡線條
+let bodies: Body[] = [];  // 存儲三個天體的資訊（位置、速度、網格等）
+let trails: ThreeModule.Line[] = [];  // 存儲三個天體的軌跡線條
 
 // === 三體初始參數 ===
-const bodyParams = [
+const bodyParams: { position: Vec3; velocity: Vec3; color: number; mass: number }[] = [
   {
     position: [5, 0, 0],   // 初始位置 (x, y, z)
     velocity: [0, 0.1, 1], // 初始速度向量
@@ -109,17 +121,17 @@ const DAMPING = 0.5;     // 邊界反彈阻尼：能量損失係數（<1 表示�
 const TRAIL_LENGTH = 400; // 軌跡最多保留的點數
 
 // === 重複使用的暫存向量，避免每幀建立新物件 ===
-let tempDiff;
-let tempVec;
-let forces = [];
+let tempDiff: ThreeModule.Vector3;
+let tempVec: ThreeModule.Vector3;
+let forces: ThreeModule.Vector3[] = [];
 
 // === 狀態 ===
-let initPromise = null;
+let initPromise: Promise<void> | null = null;
 let isVisible = false;
 let lastTime = 0;
 let accumulator = 0;
-let visibilityObserver = null;
-let idleId = null;
+let visibilityObserver: IntersectionObserver | null = null;
+let idleId: number | null = null;
 let unmounted = false;
 
 // === Vue 生命週期 ===
@@ -136,12 +148,13 @@ onMounted(() => {
     },
     { rootMargin: '200px 0px' }
   );
-  visibilityObserver.observe(footerRef.value);
+  if (footerRef.value) visibilityObserver.observe(footerRef.value);
 
   // 頁面載入完成後，利用瀏覽器閒置時間預先載入 three.js
   whenAppLoaded().then(() => {
     if (unmounted) return;
-    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+    const idle: (cb: () => void) => number =
+      window.requestIdleCallback || ((cb) => window.setTimeout(cb, 1));
     idleId = idle(() => ensureInit());
   });
 
@@ -153,14 +166,15 @@ onUnmounted(() => {
   unmounted = true;
   window.removeEventListener('resize', handleResize);
   visibilityObserver?.disconnect();
-  if (idleId) (window.cancelIdleCallback || clearTimeout)(idleId);
+  if (idleId) (window.cancelIdleCallback || window.clearTimeout)(idleId);
   stop();
 
   if (scene) {
     // 釋放所有幾何體與材質
     scene.traverse((obj) => {
-      obj.geometry?.dispose();
-      obj.material?.dispose();
+      if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points)) return;
+      obj.geometry.dispose();
+      (Array.isArray(obj.material) ? obj.material : [obj.material]).forEach((m) => m.dispose());
     });
   }
   if (renderer) {
@@ -171,7 +185,7 @@ onUnmounted(() => {
 /**
  * 動態載入 three.js 並初始化場景（只執行一次）
  */
-function ensureInit() {
+function ensureInit(): Promise<void> {
   if (!initPromise) {
     initPromise = import('three').then((module) => {
       if (unmounted) return;
@@ -189,7 +203,7 @@ function start() {
   if (unmounted || !isVisible || !renderer || animationId) return;
   // 減少動態效果：只畫一張靜態畫面
   if (prefersReducedMotion()) {
-    renderer.render(scene, camera);
+    if (scene && camera) renderer.render(scene, camera);
     return;
   }
   lastTime = performance.now();
@@ -211,6 +225,7 @@ function stop() {
  */
 function initThree() {
   const canvas = canvasRef.value;
+  if (!canvas) return;
   const width = canvas.offsetWidth;   // Canvas 寬度
   const height = canvas.offsetHeight; // Canvas 高度
 
@@ -218,9 +233,10 @@ function initThree() {
   tempVec = new THREE.Vector3();
 
   // === 創建場景 ===
-  scene = new THREE.Scene();
+  const newScene = new THREE.Scene();
+  scene = newScene;
   // background: 場景背景色（深黑色）
-  scene.background = new THREE.Color(0x0a0a0a);
+  newScene.background = new THREE.Color(0x0a0a0a);
 
   // === 創建透視相機 ===
   // 參數：視野角度(FOV)、長寬比、近裁剪面、遠裁剪面
@@ -247,7 +263,7 @@ function initThree() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
   // 添加星空背景
-  addStars();
+  addStars(newScene);
 
   // === 三個天體共用的幾何體 ===
   // SphereGeometry(半徑, 水平分段數, 垂直分段數)
@@ -274,7 +290,7 @@ function initThree() {
     // 設定初始位置
     mesh.position.fromArray(params.position);
     // 將網格添加到場景中
-    scene.add(mesh);
+    newScene.add(mesh);
 
     // --- 光暈 ---
     glowLayers.forEach(({ geometry, opacity }) => {
@@ -313,7 +329,7 @@ function initThree() {
     const trail = new THREE.Line(trailGeometry, trailMaterial);
     trail.frustumCulled = false; // 軌跡點持續變動，不做視錐剔除
     trail.renderOrder = 999; // 設定最高渲染優先級，確保軌跡最後繪製
-    scene.add(trail);
+    newScene.add(trail);
 
     // 將天體資訊存入陣列
     bodies.push({
@@ -332,13 +348,13 @@ function initThree() {
   // === 添加環境光 ===
   // AmbientLight：均勻照亮場景中的所有物體
   const ambientLight = new THREE.AmbientLight(0x404040); // 暗灰色環境光
-  scene.add(ambientLight);
+  newScene.add(ambientLight);
 }
 
 /**
  * 添加星空背景
  */
-function addStars() {
+function addStars(target: ThreeModule.Scene) {
   // BufferGeometry：用於創建點雲
   const starGeometry = new THREE.BufferGeometry();
   const starCount = 3000; // 星星數量
@@ -390,7 +406,7 @@ function addStars() {
 
   // Points：點雲物件
   const stars = new THREE.Points(starGeometry, starMaterial);
-  scene.add(stars);
+  target.add(stars);
 }
 
 /**
@@ -444,7 +460,7 @@ function stepBodies() {
     body.position.addScaledVector(body.velocity, dt);
 
     // === 邊界檢測和反彈 ===
-    ['x', 'y', 'z'].forEach(axis => {
+    (['x', 'y', 'z'] as const).forEach(axis => {
       if (Math.abs(body.position[axis]) > BOUNDARY) {
         // 將位置限制在邊界內
         body.position[axis] = Math.sign(body.position[axis]) * BOUNDARY;
@@ -489,7 +505,8 @@ function syncBodies() {
 /**
  * 動畫循環
  */
-function animate(now) {
+function animate(now: number) {
+  if (!renderer || !scene || !camera) return;
   // 請求下一幀動畫
   animationId = requestAnimationFrame(animate);
 
@@ -522,8 +539,10 @@ function handleResize() {
   const canvas = canvasRef.value;
   if (!canvas || !camera || !renderer) return; // 確保所有物件都已初始化
 
-  const width = canvas.parentElement.clientWidth;
-  const height = canvas.parentElement.clientHeight;
+  const parent = canvas.parentElement;
+  if (!parent) return;
+  const width = parent.clientWidth;
+  const height = parent.clientHeight;
 
   // 更新相機長寬比
   camera.aspect = width / height;

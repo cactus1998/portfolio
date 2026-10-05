@@ -16,7 +16,7 @@
   </a>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
 // 捲動超過一個畫面高度後才顯示

@@ -1,5 +1,7 @@
-// data/jobs.js
-export const jobs = [
+// data/jobs.ts
+import type { Job } from '../types'
+
+export const jobs: Job[] = [
   {
     title: '前端工程師',
     company: '星益欣數位服務股份有限公司',

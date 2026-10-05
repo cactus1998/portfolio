@@ -85,7 +85,7 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import gsap from "gsap";
 import { TextPlugin } from "gsap/TextPlugin";
@@ -105,15 +105,15 @@ const DESC_TEXT =
   "熱愛創造優雅的網頁體驗，專注於前端開發與使用者介面設計。\n用程式碼實現創意，讓每個專案都充滿生命力。";
 
 // Canvas 相關 refs
-const snowCanvas = ref(null);
-let ctx = null;
-let snowflakes = [];
-let animationId = null;
+const snowCanvas = ref<HTMLCanvasElement | null>(null);
+let ctx: CanvasRenderingContext2D | null = null;
+let snowflakes: Snowflake[] = [];
+let animationId: number | null = null;
 let mouseX = -9999;
 let mouseY = -9999;
-let resizeObserver = null;
-let visibilityObserver = null;
-let section = null;
+let resizeObserver: ResizeObserver | null = null;
+let visibilityObserver: IntersectionObserver | null = null;
+let section: HTMLElement | null = null;
 let targetSnowflakeCount = 120;
 let currentSnowflakeCount = 0;
 let snowflakeSpawnRate = 1;
@@ -124,24 +124,28 @@ let height = 0;
 let dpr = 1;
 
 // GSAP 文字動畫 refs
-const titleTextRef = ref(null);
-const titleSpanRef = ref(null);
-const descRef = ref(null);
-const buttonsRef = ref(null);
-const roleRef = ref(null);
-const avatarRef = ref(null);
+const titleTextRef = ref<HTMLElement | null>(null);
+const titleSpanRef = ref<HTMLElement | null>(null);
+const descRef = ref<HTMLElement | null>(null);
+const buttonsRef = ref<HTMLElement | null>(null);
+const roleRef = ref<HTMLElement | null>(null);
+const avatarRef = ref<HTMLElement | null>(null);
 
-let textTimeline = null;
-let textDelayId = null;
+let textTimeline: gsap.core.Timeline | null = null;
+let textDelayId: ReturnType<typeof setTimeout> | undefined;
 let unmounted = false;
 
 // ========== 雪花圖片快取 ==========
 // shadowBlur 每幀逐顆計算很吃效能，改為預先畫好帶光暈的雪花，之後直接 drawImage
 const SHADOW_BLUR = 10;
 const SPRITE_PADDING = 16;
-const spriteCache = new Map();
+interface Sprite {
+  canvas: HTMLCanvasElement;
+  half: number;
+}
+const spriteCache = new Map<string, Sprite>();
 
-const getSprite = (radius, opacity) => {
+const getSprite = (radius: number, opacity: number): Sprite | null => {
   const key = `${radius}-${opacity}-${dpr}`;
   let sprite = spriteCache.get(key);
   if (sprite) return sprite;
@@ -150,6 +154,7 @@ const getSprite = (radius, opacity) => {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = Math.ceil(half * 2 * dpr);
   const spriteCtx = canvas.getContext("2d");
+  if (!spriteCtx) return null;
   spriteCtx.scale(dpr, dpr);
   spriteCtx.beginPath();
   spriteCtx.arc(half, half, radius, 0, Math.PI * 2);
@@ -166,6 +171,13 @@ const getSprite = (radius, opacity) => {
 
 // ========== 雪花類別 ==========
 class Snowflake {
+  x = 0;
+  y = 0;
+  radius = 0;
+  speed = 0;
+  wind = 0;
+  opacity = 0;
+
   constructor() {
     this.reset();
   }
@@ -205,14 +217,17 @@ class Snowflake {
     }
   }
 
-  draw(ctx) {
-    const { canvas, half } = getSprite(this.radius, this.opacity);
+  draw(ctx: CanvasRenderingContext2D) {
+    const sprite = getSprite(this.radius, this.opacity);
+    if (!sprite) return;
+    const { canvas, half } = sprite;
     ctx.drawImage(canvas, this.x - half, this.y - half, half * 2, half * 2);
   }
 }
 
 // ========== 滑鼠互動 ==========
-const handleMouseMove = (e) => {
+const handleMouseMove = (e: MouseEvent) => {
+  if (!section) return;
   const rect = section.getBoundingClientRect();
   mouseX = e.clientX - rect.left;
   mouseY = e.clientY - rect.top;
@@ -225,7 +240,9 @@ const handleMouseLeave = () => {
 
 // ========== 動畫循環 ==========
 const animate = () => {
-  ctx.clearRect(0, 0, width, height);
+  if (!ctx) return;
+  const context = ctx;
+  context.clearRect(0, 0, width, height);
 
   if (currentSnowflakeCount < targetSnowflakeCount) {
     const toAdd = Math.min(
@@ -241,7 +258,7 @@ const animate = () => {
 
   snowflakes.forEach((snowflake) => {
     snowflake.update();
-    snowflake.draw(ctx);
+    snowflake.draw(context);
   });
 
   animationId = requestAnimationFrame(animate);
@@ -263,7 +280,9 @@ const initSnow = () => {
   const canvas = snowCanvas.value;
   if (!canvas) return;
 
-  ctx = canvas.getContext("2d");
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  ctx = context;
 
   const resize = () => {
     const newDpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -274,7 +293,7 @@ const initSnow = () => {
     // 依像素比放大實際解析度，高 DPI 螢幕才不會模糊
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
   resize();
 
@@ -285,6 +304,7 @@ const initSnow = () => {
   currentSnowflakeCount = 0;
 
   section = canvas.parentElement;
+  if (!section) return;
   section.addEventListener("mousemove", handleMouseMove);
   section.addEventListener("mouseleave", handleMouseLeave);
 
@@ -365,10 +385,11 @@ const initTextAnimation = () => {
 
 // 減少動態效果：直接顯示完整內容，不播放動畫
 const showStatic = () => {
-  titleTextRef.value.textContent = TITLE_TEXT;
-  titleSpanRef.value.textContent = TITLE_NAME;
-  descRef.value.textContent = DESC_TEXT;
+  if (titleTextRef.value) titleTextRef.value.textContent = TITLE_TEXT;
+  if (titleSpanRef.value) titleSpanRef.value.textContent = TITLE_NAME;
+  if (descRef.value) descRef.value.textContent = DESC_TEXT;
   for (const el of [avatarRef.value, roleRef.value, buttonsRef.value]) {
+    if (!el) continue;
     el.style.opacity = "1";
     el.style.transform = "none";
   }

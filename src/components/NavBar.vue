@@ -83,7 +83,7 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import GithubIcon from './GithubIcon.vue'
 import { profile } from '../data/profile'
@@ -106,7 +106,7 @@ const updateScrolled = () => {
   scrolled.value = window.scrollY > SCROLLED_OFFSET
 }
 
-let observer = null
+let observer: IntersectionObserver | null = null
 
 onMounted(() => {
   updateScrolled()
@@ -124,7 +124,7 @@ onMounted(() => {
   )
   NAV_ITEMS.forEach(({ id }) => {
     const section = document.getElementById(id)
-    if (section) observer.observe(section)
+    if (section) observer?.observe(section)
   })
 })
 

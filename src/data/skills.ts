@@ -1,5 +1,7 @@
-// data/skills.js
-export const skillBlocks = [
+// data/skills.ts
+import type { SkillBlock } from '../types'
+
+export const skillBlocks: SkillBlock[] = [
   {
     id: 1,
     title: 'Frontend Development',

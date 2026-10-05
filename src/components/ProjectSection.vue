@@ -28,7 +28,7 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SiteCard from './SiteCard.vue'
 import { sites } from '../data/sites'
 </script>

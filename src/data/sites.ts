@@ -1,8 +1,9 @@
 import logo from "../assets/logo.webp";
 import reactGame01 from "../assets/reactGame01.png";
 import stone from "../assets/stone.webp";
+import type { Site } from "../types";
 
-export const sites = [
+export const sites: Site[] = [
   {
     title: "樂咖大物輪",
     description: "純手工鋁製前打輪形象網站",
