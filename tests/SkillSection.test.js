@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { intersectionObservers } from './setup'
-import { skillBlocks } from '../src/data/skills'
+import { skillBlocks, coreSkills } from '../src/data/skills'
 
 vi.mock('gsap', () => {
   const gsap = { fromTo: vi.fn(), to: vi.fn(), set: vi.fn(), killTweensOf: vi.fn() }
@@ -23,6 +23,11 @@ describe('SkillSection', () => {
       .forEach((tag) => expect(wrapper.text()).toContain(tag))
   })
 
+  it('顯示主力技術', () => {
+    const wrapper = mount(SkillSection)
+    coreSkills.forEach((skill) => expect(wrapper.text()).toContain(skill.name))
+  })
+
   it('有 #skills 錨點供首頁按鈕跳轉', () => {
     expect(mount(SkillSection).find('section').attributes('id')).toBe('skills')
   })
@@ -33,18 +38,19 @@ describe('SkillSection', () => {
     expect(intersectionObservers[0].elements.size).toBe(skillBlocks.length)
   })
 
-  it('卡片進入畫面時依位置從不同方向飛入', () => {
+  it('卡片進入畫面時上移淡入，並依位置錯開時間', () => {
     const wrapper = mount(SkillSection)
     const cards = wrapper.findAll('.skill-card').map((c) => c.element)
-    // 故意打亂順序觸發，確認方向是依卡片位置而非觸發順序
+    // 故意打亂順序觸發，確認延遲是依卡片位置而非觸發順序
     intersectionObservers[0].trigger(true, [cards[2], cards[0]])
 
     expect(gsap.fromTo).toHaveBeenCalledTimes(2)
-    const [[el1, from1], [el2, from2]] = gsap.fromTo.mock.calls
+    const [[el1, from1, to1], [el2, , to2]] = gsap.fromTo.mock.calls
     expect(el1).toBe(cards[2])
-    expect(from1).toMatchObject({ opacity: 0, x: 80, y: 80 })
+    expect(from1).toMatchObject({ opacity: 0, y: 24 })
+    expect(to1).toMatchObject({ opacity: 1, y: 0 })
     expect(el2).toBe(cards[0])
-    expect(from2).toMatchObject({ opacity: 0, x: -80, y: -80 })
+    expect(to1.delay).toBeGreaterThan(to2.delay)
   })
 
   it('進場後停止觀察該卡片，離開畫面也不會淡出', () => {

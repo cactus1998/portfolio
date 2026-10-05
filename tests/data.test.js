@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { sites } from '../src/data/sites'
 import { jobs } from '../src/data/jobs'
-import { skillBlocks } from '../src/data/skills'
+import { skillBlocks, coreSkills } from '../src/data/skills'
 
 const isTrimmedNonEmpty = (s) => typeof s === 'string' && s.length > 0 && s === s.trim()
 
@@ -69,6 +69,8 @@ describe('skillBlocks 技能資料', () => {
     skillBlocks.forEach((block) => {
       expect(isTrimmedNonEmpty(block.title)).toBe(true)
       expect(['code', 'server', 'tools', 'spark']).toContain(block.icon)
+      expect(['indigo', 'emerald', 'violet', 'amber']).toContain(block.accent)
+      expect(isTrimmedNonEmpty(block.summary)).toBe(true)
       expect(block.skills.length).toBeGreaterThan(0)
       block.skills.forEach((group) => {
         expect(isTrimmedNonEmpty(group.label)).toBe(true)
@@ -83,5 +85,19 @@ describe('skillBlocks 技能資料', () => {
       const labels = block.skills.map((g) => g.label)
       expect(new Set(labels).size).toBe(labels.length)
     })
+  })
+})
+
+describe('coreSkills 主力技術', () => {
+  it('每項都有名稱、品牌圖示與色碼，且名稱不重複', () => {
+    expect(coreSkills.length).toBeGreaterThan(0)
+    coreSkills.forEach((skill) => {
+      expect(isTrimmedNonEmpty(skill.name)).toBe(true)
+      expect(isTrimmedNonEmpty(skill.note)).toBe(true)
+      expect(skill.path.length).toBeGreaterThan(0)
+      expect(skill.hex).toMatch(/^[0-9A-F]{6}$/i)
+    })
+    const names = coreSkills.map((s) => s.name)
+    expect(new Set(names).size).toBe(names.length)
   })
 })

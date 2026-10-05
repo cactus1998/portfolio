@@ -56,30 +56,50 @@
 
       <div
         ref="buttonsRef"
-        class="flex flex-col sm:flex-row gap-4 justify-center opacity-0"
+        class="opacity-0"
       >
-        <a
-          href="#projects"
-          class="w-full sm:w-auto px-8 py-3 border-2 bg-black text-white rounded-full hover:bg-transparent hover:text-black hover:border-black hover:border-2 transition duration-300"
-        >
-          查看作品
-        </a>
-        <a
-          href="#skills"
-          class="w-full sm:w-auto px-8 py-3 border-2 border-black text-black rounded-full hover:bg-black hover:text-white transition duration-300"
-        >
-          技能介紹
-        </a>
-        <a
-          :href="profile.github"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub"
-          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 sm:px-4 py-3 border-2 border-black text-black rounded-full hover:bg-black hover:text-white transition duration-300"
-        >
-          <GithubIcon class="w-5 h-5" />
-          <span class="sm:hidden">GitHub</span>
-        </a>
+        <!-- 主要行動按鈕：同尺寸、主次分明 -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a
+            href="#projects"
+            class="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-gray-900 text-white font-medium shadow-lg shadow-indigo-900/10 hover:bg-indigo-700 transition-colors duration-300"
+          >
+            查看作品
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6" />
+            </svg>
+          </a>
+          <a
+            href="#skills"
+            class="inline-flex items-center justify-center px-7 py-3 rounded-full bg-white/70 backdrop-blur-sm border border-gray-300 text-gray-800 font-medium hover:border-gray-900 hover:text-gray-900 transition-colors duration-300"
+          >
+            技能介紹
+          </a>
+        </div>
+
+        <!-- 次要連結：社群與聯絡方式 -->
+        <div class="mt-6 flex items-center justify-center gap-6 text-sm text-gray-600">
+          <a
+            :href="profile.github"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            class="inline-flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+          >
+            <GithubIcon class="w-4 h-4" />
+            GitHub
+          </a>
+          <span class="w-px h-4 bg-gray-300" aria-hidden="true"></span>
+          <a
+            :href="`mailto:${profile.email}`"
+            class="inline-flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
+            </svg>
+            Email
+          </a>
+        </div>
       </div>
     </div>
   </section>
