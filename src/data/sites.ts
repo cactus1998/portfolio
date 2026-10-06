@@ -10,6 +10,7 @@ export const sites: Site[] = [
     description: "前端技術展示庫：虛擬列表、指令面板、拖放看板、跨分頁購物車等常見難題的可互動實作，附設計說明與測試",
     image: functionLibrary,
     link: "https://kentfolio.dev/function-library/",
+    repo: "https://github.com/cactus1998/function-library",
     techStack: ["Vue 3", "TypeScript", "Vite", "Pinia", "Vue Router", "Vitest", "Fuse.js"]
   },
   {
