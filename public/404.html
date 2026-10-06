@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>404｜邦晉 Kent 作品集</title>
+    <link rel="icon" type="image/png" href="/logo01.png" />
+    <script>
+      // GitHub Pages 只會使用網站根目錄的 404.html。
+      // 子資料夾裡使用 HTML5 history 的 SPA，在深層網址重新整理時也會落到這裡，
+      // 先把原本的網址存進 sessionStorage，再導回該 SPA 的入口，由入口頁還原網址交給 router。
+      ;(function () {
+        var SPA_BASES = ['/function-library/']
+        var path = location.pathname
+        var base = SPA_BASES.find(function (b) {
+          return path.indexOf(b) === 0 && path.length > b.length
+        })
+        // 帶副檔名的路徑是真的缺檔（例如 .js、.png），不轉址
+        var lastSegment = path.split('/').pop() || ''
+        if (!base || lastSegment.indexOf('.') !== -1) return
+        try {
+          sessionStorage.setItem('spa-redirect', path + location.search + location.hash)
+        } catch (e) {
+          // 無法使用 sessionStorage 時只回到入口頁
+        }
+        location.replace(base)
+      })()
+    </script>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-soft: #eef2ff;
+        --text: #111827;
+        --text-muted: #4b5563;
+        --text-faint: #9ca3af;
+        --accent: #4f46e5;
+        --accent-2: #9333ea;
+        --border: #d1d5db;
+        --btn-bg: #111827;
+        --btn-text: #ffffff;
+        --btn-hover: #4338ca;
+        --code-bg: rgba(79, 70, 229, 0.08);
+        --aurora-1: rgba(165, 180, 252, 0.45);
+        --aurora-2: rgba(196, 181, 253, 0.4);
+        --aurora-3: rgba(186, 230, 253, 0.55);
+        color-scheme: light;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b0b1a;
+          --bg-soft: #13132b;
+          --text: #f3f4f6;
+          --text-muted: #c7c9d9;
+          --text-faint: #6b7280;
+          --accent: #a5b4fc;
+          --accent-2: #d8b4fe;
+          --border: #3f3f5a;
+          --btn-bg: #f3f4f6;
+          --btn-text: #111827;
+          --btn-hover: #c7d2fe;
+          --code-bg: rgba(165, 180, 252, 0.12);
+          --aurora-1: rgba(79, 70, 229, 0.28);
+          --aurora-2: rgba(147, 51, 234, 0.22);
+          --aurora-3: rgba(14, 165, 233, 0.18);
+          color-scheme: dark;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: radial-gradient(ellipse at center, var(--bg-soft), var(--bg) 70%);
+        color: var(--text);
+        font-family: system-ui, -apple-system, 'Segoe UI', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      /* 極光色塊，與作品集首頁一致 */
+      .aurora {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(64px);
+        pointer-events: none;
+        animation: drift 18s ease-in-out infinite alternate;
+      }
+      .aurora--1 { top: -12rem; left: -10rem; width: 34rem; height: 34rem; background: var(--aurora-1); }
+      .aurora--2 { top: 20%; right: -12rem; width: 30rem; height: 30rem; background: var(--aurora-2); animation-delay: -6s; }
+      .aurora--3 { bottom: -14rem; left: 25%; width: 28rem; height: 28rem; background: var(--aurora-3); animation-delay: -12s; }
+
+      @keyframes drift {
+        to { transform: translate(3rem, 2rem) scale(1.08); }
+      }
+
+      #space {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      main {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 16px;
+        text-align: center;
+        pointer-events: none;
+      }
+
+      main a,
+      main button {
+        pointer-events: auto;
+      }
+
+      .eyebrow {
+        margin: 0 0 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.3em;
+        color: var(--accent);
+      }
+
+      .code {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(6rem, 24vw, 13rem);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        user-select: none;
+      }
+
+      /* 0 的位置留空，由 canvas 在這裡畫黑洞 */
+      .zero {
+        display: inline-block;
+        width: 0.9em;
+        height: 1em;
+      }
+
+      h1 {
+        margin: 1.5rem 0 0.75rem;
+        font-size: clamp(1.4rem, 4vw, 2rem);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      .lead {
+        margin: 0 auto;
+        max-width: 34rem;
+        color: var(--text-muted);
+        font-size: 1rem;
+      }
+
+      .lead code {
+        display: inline-block;
+        max-width: 100%;
+        padding: 0.1rem 0.45rem;
+        border-radius: 0.375rem;
+        background: var(--code-bg);
+        color: var(--accent);
+        font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+        font-size: 0.9em;
+        overflow-wrap: anywhere;
+      }
+
+      .actions {
+        margin-top: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.75rem 1.6rem;
+        border-radius: 999px;
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+      }
+
+      .btn--primary {
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        border: 1px solid var(--btn-bg);
+      }
+      .btn--primary:hover { background: var(--btn-hover); border-color: var(--btn-hover); }
+
+      .btn--ghost {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .btn--ghost:hover { border-color: var(--text); }
+
+      .btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      .hint {
+        margin-top: 2rem;
+        font-size: 0.85rem;
+        color: var(--text-faint);
+      }
+
+      .counter {
+        font-variant-numeric: tabular-nums;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .aurora { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="aurora aurora--1" aria-hidden="true"></div>
+    <div class="aurora aurora--2" aria-hidden="true"></div>
+    <div class="aurora aurora--3" aria-hidden="true"></div>
+    <canvas id="space" aria-hidden="true"></canvas>
+
+    <main>
+      <p class="eyebrow">PAGE NOT FOUND</p>
+      <p class="code" aria-label="404"><span aria-hidden="true">4</span><span class="zero" id="zero" aria-hidden="true"></span><span aria-hidden="true">4</span></p>
+      <h1>這個頁面掉進黑洞了</h1>
+      <p class="lead">
+        你要找的 <code id="path">/</code> 已經越過事件視界，連光都逃不出來。
+      </p>
+      <div class="actions">
+        <a class="btn btn--primary" href="/">回到作品集</a>
+        <a class="btn btn--ghost" href="/#projects">看看作品</a>
+        <button class="btn btn--ghost" type="button" id="back" hidden>回上一頁</button>
+      </div>
+      <p class="hint">
+        在鍵盤上打字，看看它們會去哪裡 · 已吞噬 <span class="counter" id="counter">0</span> 個字元
+      </p>
+    </main>
+
+    <script>
+      ;(function () {
+        var canvas = document.getElementById('space')
+        var ctx = canvas.getContext('2d')
+        var zero = document.getElementById('zero')
+        var counterEl = document.getElementById('counter')
+        var pathEl = document.getElementById('path')
+        var backBtn = document.getElementById('back')
+
+        var rawPath = location.pathname
+        var path
+        try {
+          path = decodeURIComponent(rawPath)
+        } catch (e) {
+          path = rawPath
+        }
+        pathEl.textContent = path.length > 60 ? path.slice(0, 57) + '…' : path
+
+        if (history.length > 1 && document.referrer) {
+          backBtn.hidden = false
+          backBtn.addEventListener('click', function () {
+            history.back()
+          })
+        }
+
+        var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        var darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
+
+        var width = 0
+        var height = 0
+        var dpr = 1
+        var hole = { x: 0, y: 0, r: 40 }
+        var glyphs = []
+        var dust = []
+        var queue = Array.from(path.replace(/^\/+/, '') || '404')
+        var eaten = 0
+        var pulse = 0
+        var spin = 0
+        var lastTime = 0
+        var spawnTimer = 0
+        var ambientTimer = 0
+        var AMBIENT = '404NOTFOUND{}<>/;#?'
+        var MAX_FRAME = 0.05
+
+        function palette() {
+          return darkQuery.matches
+            ? { glyph: '226, 232, 255', dust: '199, 210, 254', horizon: '#000000', ring: '255, 255, 255' }
+            : { glyph: '67, 56, 202', dust: '99, 102, 241', horizon: '#05050f', ring: '255, 255, 255' }
+        }
+
+        function resize() {
+          dpr = Math.min(window.devicePixelRatio || 1, 2)
+          width = window.innerWidth
+          height = window.innerHeight
+          canvas.width = Math.round(width * dpr)
+          canvas.height = Math.round(height * dpr)
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        }
+
+        function locateHole() {
+          var rect = zero.getBoundingClientRect()
+          hole.x = rect.left + rect.width / 2
+          hole.y = rect.top + rect.height / 2
+          hole.r = Math.max(18, rect.width * 0.3)
+        }
+
+        function outerRadius() {
+          return Math.hypot(width, height) * 0.55
+        }
+
+        // 從畫面外圍（或指定位置）生成一個會被吸入的字元
+        function spawnGlyph(char, x, y, faint) {
+          var dx, dy
+          if (typeof x === 'number') {
+            dx = x - hole.x
+            dy = (y - hole.y) / 0.62
+          } else {
+            var a = Math.random() * Math.PI * 2
+            var r = outerRadius() * (0.85 + Math.random() * 0.2)
+            dx = Math.cos(a) * r
+            dy = Math.sin(a) * r
+          }
+          var r0 = Math.max(Math.hypot(dx, dy), hole.r * 1.6)
+          glyphs.push({
+            char: char,
+            r: r0,
+            r0: r0,
+            theta: Math.atan2(dy, dx),
+            size: faint ? 14 + Math.random() * 6 : 20 + Math.random() * 10,
+            alpha: faint ? 0.3 : 0.75,
+            spinSelf: (Math.random() - 0.5) * 2,
+            rot: 0,
+            counts: !faint
+          })
+        }
+
+        function resetDust(d, anywhere) {
+          var max = outerRadius()
+          d.r = anywhere ? hole.r * 1.5 + Math.random() * max : max * (0.8 + Math.random() * 0.3)
+          d.theta = Math.random() * Math.PI * 2
+          d.size = 0.6 + Math.random() * 1.6
+          d.alpha = 0.25 + Math.random() * 0.5
+        }
+
+        function initDust() {
+          var count = Math.round(Math.min(160, Math.max(60, (width * height) / 9000)))
+          dust = []
+          for (var i = 0; i < count; i++) {
+            var d = {}
+            resetDust(d, true)
+            dust.push(d)
+          }
+        }
+
+        // 越靠近黑洞轉得越快、掉得越快；inflow 為每秒落下的比例（相對外圍半徑）
+        function orbit(obj, dt, inflow) {
+          var ratio = (hole.r * 2.2) / obj.r
+          obj.theta += 0.9 * Math.pow(ratio, 1.5) * dt + 0.05 * dt
+          obj.r -= outerRadius() * inflow * (0.6 + Math.min(ratio, 2)) * dt
+        }
+
+        function project(obj) {
+          return {
+            x: hole.x + Math.cos(obj.theta) * obj.r,
+            y: hole.y + Math.sin(obj.theta) * obj.r * 0.62
+          }
+        }
+
+        function drawDisk(colors, front) {
+          var r = hole.r
+          ctx.save()
+          ctx.translate(hole.x, hole.y)
+          ctx.rotate(-0.28)
+          ctx.scale(1, 0.3)
+          var start = front ? 0 : Math.PI
+          var end = front ? Math.PI : Math.PI * 2
+          for (var i = 0; i < 4; i++) {
+            var ringR = r * (1.45 + i * 0.32)
+            var g = ctx.createLinearGradient(-ringR, 0, ringR, 0)
+            var shift = (Math.sin(spin + i) + 1) / 2
+            g.addColorStop(0, 'rgba(99, 102, 241, 0.05)')
+            g.addColorStop(0.25 + shift * 0.2, 'rgba(147, 51, 234, ' + (0.75 - i * 0.14) + ')')
+            g.addColorStop(0.55, 'rgba(251, 191, 36, ' + (0.85 - i * 0.18) + ')')
+            g.addColorStop(0.8 - shift * 0.15, 'rgba(99, 102, 241, ' + (0.7 - i * 0.14) + ')')
+            g.addColorStop(1, 'rgba(99, 102, 241, 0.05)')
+            ctx.strokeStyle = g
+            ctx.lineWidth = r * (0.34 - i * 0.05) * (1 + pulse * 0.6)
+            ctx.beginPath()
+            ctx.arc(0, 0, ringR, start, end)
+            ctx.stroke()
+          }
+          ctx.restore()
+        }
+
+        function drawHole(colors) {
+          var r = hole.r
+          // 外圍光暈
+          var glow = ctx.createRadialGradient(hole.x, hole.y, r, hole.x, hole.y, r * 3.6)
+          glow.addColorStop(0, 'rgba(129, 140, 248, ' + (0.35 + pulse * 0.4) + ')')
+          glow.addColorStop(1, 'rgba(129, 140, 248, 0)')
+          ctx.fillStyle = glow
+          ctx.beginPath()
+          ctx.arc(hole.x, hole.y, r * 3.6, 0, Math.PI * 2)
+          ctx.fill()
+
+          drawDisk(colors, false)
+
+          // 光子環
+          ctx.save()
+          ctx.shadowColor = 'rgba(251, 191, 36, 0.9)'
+          ctx.shadowBlur = r * (0.5 + pulse)
+          ctx.strokeStyle = 'rgba(' + colors.ring + ', ' + (0.75 + pulse * 0.25) + ')'
+          ctx.lineWidth = Math.max(1.5, r * 0.06)
+          ctx.beginPath()
+          ctx.arc(hole.x, hole.y, r * 1.06, 0, Math.PI * 2)
+          ctx.stroke()
+          ctx.restore()
+
+          // 事件視界
+          ctx.fillStyle = colors.horizon
+          ctx.beginPath()
+          ctx.arc(hole.x, hole.y, r, 0, Math.PI * 2)
+          ctx.fill()
+
+          drawDisk(colors, true)
+        }
+
+        function update(dt) {
+          spin += dt * 1.4
+          pulse = Math.max(0, pulse - dt * 1.8)
+
+          spawnTimer -= dt
+          if (queue.length && spawnTimer <= 0) {
+            spawnGlyph(queue.shift())
+            spawnTimer = 0.14
+          }
+
+          ambientTimer -= dt
+          if (!queue.length && ambientTimer <= 0) {
+            spawnGlyph(AMBIENT[Math.floor(Math.random() * AMBIENT.length)], undefined, undefined, true)
+            ambientTimer = 2.5 + Math.random() * 1.5
+          }
+
+          for (var i = 0; i < dust.length; i++) {
+            orbit(dust[i], dt, 0.012)
+            if (dust[i].r < hole.r * 1.02) resetDust(dust[i], false)
+          }
+
+          for (var j = glyphs.length - 1; j >= 0; j--) {
+            var g = glyphs[j]
+            orbit(g, dt, 0.14)
+            g.rot += g.spinSelf * dt * (1 + (hole.r * 3) / g.r)
+            if (g.r < hole.r * 0.95) {
+              glyphs.splice(j, 1)
+              if (g.counts) {
+                eaten++
+                counterEl.textContent = String(eaten)
+                pulse = Math.min(1, pulse + 0.35)
+              }
+            }
+          }
+        }
+
+        function draw() {
+          var colors = palette()
+          ctx.clearRect(0, 0, width, height)
+
+          for (var i = 0; i < dust.length; i++) {
+            var d = dust[i]
+            var p = project(d)
+            ctx.fillStyle = 'rgba(' + colors.dust + ', ' + d.alpha + ')'
+            ctx.beginPath()
+            ctx.arc(p.x, p.y, d.size, 0, Math.PI * 2)
+            ctx.fill()
+          }
+
+          // 位於黑洞後方（上半圈）的字元先畫，前方的後畫，製造立體感
+          var behind = []
+          var front = []
+          for (var j = 0; j < glyphs.length; j++) {
+            ;(Math.sin(glyphs[j].theta) < 0 ? behind : front).push(glyphs[j])
+          }
+          behind.forEach(function (g) { drawGlyph(g, colors) })
+          drawHole(colors)
+          front.forEach(function (g) { drawGlyph(g, colors) })
+        }
+
+        function drawGlyph(g, colors) {
+          var p = project(g)
+          // 越接近事件視界越小、越淡，並被拉長
+          var near = Math.min(1, (g.r - hole.r) / (hole.r * 2.5))
+          var scale = 0.25 + 0.75 * Math.min(1, g.r / (hole.r * 4))
+          var alpha = g.alpha * Math.max(0, near)
+          if (alpha <= 0.01) return
+          ctx.save()
+          ctx.translate(p.x, p.y)
+          ctx.rotate(g.theta + Math.PI / 2 + g.rot * 0.3)
+          ctx.scale(scale * (1 + (1 - near) * 0.8), scale * (1 - (1 - near) * 0.4))
+          ctx.font = '700 ' + g.size + 'px ui-monospace, SFMono-Regular, Consolas, monospace'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillStyle = 'rgba(' + colors.glyph + ', ' + alpha + ')'
+          ctx.fillText(g.char, 0, 0)
+          ctx.restore()
+        }
+
+        function frame(time) {
+          var dt = lastTime ? Math.min(MAX_FRAME, (time - lastTime) / 1000) : 0
+          lastTime = time
+          locateHole()
+          update(dt)
+          draw()
+          requestAnimationFrame(frame)
+        }
+
+        resize()
+        locateHole()
+        initDust()
+
+        window.addEventListener('resize', function () {
+          resize()
+          locateHole()
+          initDust()
+          if (reducedMotion) draw()
+        })
+
+        if (reducedMotion) {
+          // 減少動態效果：只畫靜態黑洞與星塵
+          draw()
+          darkQuery.addEventListener('change', draw)
+          return
+        }
+
+        // 打字：字元從畫面隨機位置出發，被吸進黑洞
+        window.addEventListener('keydown', function (e) {
+          if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === ' ') return
+          var target = e.target
+          if (target && (target.tagName === 'A' || target.tagName === 'BUTTON') && e.key === 'Enter') return
+          spawnGlyph(e.key, Math.random() * width, Math.random() * height)
+        })
+
+        // 點擊空白處：從點擊位置噴出一圈星塵字元
+        canvas.addEventListener('pointerdown', function (e) {
+          for (var i = 0; i < 6; i++) {
+            spawnGlyph(
+              AMBIENT[Math.floor(Math.random() * AMBIENT.length)],
+              e.clientX + (Math.random() - 0.5) * 40,
+              e.clientY + (Math.random() - 0.5) * 40
+            )
+          }
+        })
+
+        requestAnimationFrame(frame)
+      })()
+    </script>
+  </body>
+</html>
