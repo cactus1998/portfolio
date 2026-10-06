@@ -1,9 +1,17 @@
+import functionLibrary from "../assets/function-library.svg";
 import logo from "../assets/logo.webp";
 import reactGame01 from "../assets/reactGame01.png";
 import stone from "../assets/stone.webp";
 import type { Site } from "../types";
 
 export const sites: Site[] = [
+  {
+    title: "Function Library",
+    description: "前端技術展示庫：虛擬列表、指令面板、拖放看板、跨分頁購物車等常見難題的可互動實作，附設計說明與測試",
+    image: functionLibrary,
+    link: "https://kentfolio.dev/function-library/",
+    techStack: ["Vue 3", "TypeScript", "Vite", "Pinia", "Vue Router", "Vitest", "Fuse.js"]
+  },
   {
     title: "樂咖大物輪",
     description: "純手工鋁製前打輪形象網站",
