@@ -1,3 +1,4 @@
+import aiotMonitor from "../assets/aiot-monitor.svg";
 import functionLibrary from "../assets/function-library.svg";
 import logo from "../assets/logo.webp";
 import lotteryBattle from "../assets/lottery-battle.svg";
@@ -6,6 +7,14 @@ import stone from "../assets/stone.webp";
 import type { Site } from "../types";
 
 export const sites: Site[] = [
+  {
+    title: "AIoT Monitor",
+    description: "工廠機台戰情室：模擬機台資料即時串流，提供總覽、機台詳情、歷史查詢、告警中心與趨勢預測，展示版以瀏覽器內模擬資料運作",
+    image: aiotMonitor,
+    link: "https://kentfolio.dev/aiot-monitor/",
+    repo: "https://github.com/cactus1998/aiot-monitor",
+    techStack: ["Vue 3", "TypeScript", "Vite", "Pinia", "Vue Router", "ECharts", "Zod", "Node.js", "Fastify", "SQLite", "SSE", "Vitest", "Playwright"]
+  },
   {
     title: "抽獎大亂鬥",
     description: "把抽獎變成像素小人偶的自動混戰：每位參加者隨機分配職業，在競技場打到剩最後一人，依存活順序決定名次與獎品，同一個 seed 可重播出相同結果",
