@@ -1,10 +1,19 @@
 import functionLibrary from "../assets/function-library.svg";
 import logo from "../assets/logo.webp";
+import lotteryBattle from "../assets/lottery-battle.svg";
 import reactGame01 from "../assets/reactGame01.png";
 import stone from "../assets/stone.webp";
 import type { Site } from "../types";
 
 export const sites: Site[] = [
+  {
+    title: "抽獎大亂鬥",
+    description: "把抽獎變成像素小人偶的自動混戰：每位參加者隨機分配職業，在競技場打到剩最後一人，依存活順序決定名次與獎品，同一個 seed 可重播出相同結果",
+    image: lotteryBattle,
+    link: "https://kentfolio.dev/lottery-battle/",
+    repo: "https://github.com/cactus1998/lottery-battle",
+    techStack: ["React 19", "TypeScript", "Vite", "Zustand", "Canvas 2D", "Vitest", "Testing Library"]
+  },
   {
     title: "Function Library",
     description: "前端技術展示庫：虛擬列表、指令面板、拖放看板、跨分頁購物車等常見難題的可互動實作，附設計說明與測試",
