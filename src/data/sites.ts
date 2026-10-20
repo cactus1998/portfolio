@@ -33,24 +33,24 @@ export const sites: Site[] = [
   },
   {
     title: "樂咖大物輪",
-    description: "純手工鋁製前打輪形象網站",
+    description: "純手工鋁製前打輪品牌形象頁：商品介紹、配色展示、價目表，支援繁中、簡中、英文（monorepo 三個 app 之一）",
     image: logo,
     link: "https://kentfolio.dev/fishing-reel/",
-    techStack: ["Vue 3", "Vue CLI", "webpack", "element-plus", "Tailwind CSS", "GSAP", "aos", "Swiper", "vue3-table-lite", "vue-i18n"]
+    techStack: ["Vue 3", "Vite", "vue-i18n", "element-plus", "Tailwind CSS", "aos", "Swiper", "Vitest"]
   },
   {
     title: "樂咖大物輪 購物車",
-    description: "線上購物車系統，只做為展示用，不提供實際交易",
+    description: "購物前台：商品列表、購物車、結帳下單；訂單格式由共用 schema 與 Firestore Security Rules 雙重驗證。僅供展示，不提供實際交易",
     image: logo,
     link: "https://kentfolio.dev/fishing-shop/",
-    techStack: ["Vue 3", "Vite", "Vue Router", "Pinia", "element-plus", "Tailwind CSS", "Swiper", "SweetAlert2", "Firestore"]
+    techStack: ["Vue 3", "Vite", "Vue Router", "Pinia", "element-plus", "Tailwind CSS", "Swiper", "Firestore", "Vitest", "Playwright"]
   },
   {
     title: "樂咖大物輪 購物車後台",
-    description: "線上購物車系統後台，須第三方登入，只做為展示用",
+    description: "後台訂單管理：Google 登入搭配管理員白名單，另有訪客模式可瀏覽；訂單狀態依規則逐步推進。僅供展示",
     image: logo,
     link: "https://kentfolio.dev/fishing-shop-backstage/",
-    techStack: ["Vue 3", "Vite", "Vue Router", "element-plus", "Tailwind CSS", "Firebase Auth", "Firestore", "SweetAlert2"]
+    techStack: ["Vue 3", "Vite", "Vue Router", "Pinia", "element-plus", "Tailwind CSS", "Firebase Auth", "Firestore", "Vitest"]
   },
   {
     title: "React 井字遊戲",
