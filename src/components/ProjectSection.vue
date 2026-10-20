@@ -15,6 +15,7 @@
           :link="site.link"
           :repo="site.repo"
           :techStack="site.techStack"
+          :early="site.early"
         />
       </div>
     </div>

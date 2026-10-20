@@ -8,6 +8,8 @@ export interface Site {
   /** GitHub 原始碼連結，沒有公開 repo 時省略 */
   repo?: string
   techStack: string[]
+  /** 早期或課程練習作品，卡片上顯示「早期作品」標記 */
+  early?: boolean
 }
 
 export interface Job {

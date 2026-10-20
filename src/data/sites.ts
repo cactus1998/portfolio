@@ -58,7 +58,8 @@ export const sites: Site[] = [
     image: reactGame01,
     link: "https://kentfolio.dev/react-game-tic-tac-toe/",
     repo: "https://github.com/cactus1998/React_game01",
-    techStack: ["React", "Vite"]
+    techStack: ["React", "Vite"],
+    early: true
   },
   {
     title: "遊藝新境鐵丸石藝",
@@ -66,6 +67,7 @@ export const sites: Site[] = [
     image: stone,
     link: "https://kentfolio.dev/yoyi/",
     repo: "https://github.com/cactus1998/yoyi",
-    techStack: ["JS", "emailjs", "CSS", "github pages", "Swiper"]
+    techStack: ["JS", "emailjs", "CSS", "github pages", "Swiper"],
+    early: true
   },
 ];

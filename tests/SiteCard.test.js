@@ -49,6 +49,11 @@ describe('SiteCard', () => {
     expect(mount(SiteCard, { props }).findAll('a')).toHaveLength(1)
   })
 
+  it('early 為 true 時顯示早期作品標記', () => {
+    expect(mount(SiteCard, { props: { ...props, early: true } }).text()).toContain('早期作品')
+    expect(mount(SiteCard, { props }).text()).not.toContain('早期作品')
+  })
+
   it('沒有技術標籤時顯示提示文字', () => {
     const wrapper = mount(SiteCard, { props: { ...props, techStack: [] } })
     expect(wrapper.text()).toContain('無相關技術資訊')

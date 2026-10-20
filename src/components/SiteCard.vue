@@ -5,7 +5,14 @@
            hover:shadow-xl hover:-translate-y-1 transition duration-300"
   >
     <!-- 圖片區域 -->
-    <div class="aspect-[16/10] bg-gray-50 border-b border-gray-100 overflow-hidden">
+    <div class="relative aspect-[16/10] bg-gray-50 border-b border-gray-100 overflow-hidden">
+      <span
+        v-if="early"
+        class="absolute top-3 left-3 z-10 px-2.5 py-1 text-xs font-medium rounded-full
+               bg-amber-50 text-amber-700 border border-amber-200"
+      >
+        早期作品
+      </span>
       <img
         :src="image"
         :alt="title"
