@@ -36,7 +36,6 @@ export const sites: Site[] = [
     description: "純手工鋁製前打輪形象網站",
     image: logo,
     link: "https://kentfolio.dev/fishing-reel/",
-    repo: "https://github.com/cactus1998/fishing-reel",
     techStack: ["Vue 3", "Vue CLI", "webpack", "element-plus", "Tailwind CSS", "GSAP", "aos", "Swiper", "vue3-table-lite", "vue-i18n"]
   },
   {
@@ -44,7 +43,6 @@ export const sites: Site[] = [
     description: "線上購物車系統，只做為展示用，不提供實際交易",
     image: logo,
     link: "https://kentfolio.dev/fishing-shop/",
-    repo: "https://github.com/cactus1998/fishing-shop",
     techStack: ["Vue 3", "Vite", "Vue Router", "Pinia", "element-plus", "Tailwind CSS", "Swiper", "SweetAlert2", "Firestore"]
   },
   {
@@ -52,7 +50,6 @@ export const sites: Site[] = [
     description: "線上購物車系統後台，須第三方登入，只做為展示用",
     image: logo,
     link: "https://kentfolio.dev/fishing-shop-backstage/",
-    repo: "https://github.com/cactus1998/fishing-shop-backstage",
     techStack: ["Vue 3", "Vite", "Vue Router", "element-plus", "Tailwind CSS", "Firebase Auth", "Firestore", "SweetAlert2"]
   },
   {
