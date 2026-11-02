@@ -92,12 +92,17 @@
           <span class="w-px h-4 bg-gray-300" aria-hidden="true"></span>
           <a
             :href="`mailto:${profile.email}`"
+            :title="`點擊複製 ${profile.email}`"
             class="inline-flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+            @click.prevent="copyEmail"
           >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <svg v-if="emailCopied" class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
             </svg>
-            Email
+            <span aria-live="polite">{{ emailCopied ? '已複製 Email' : 'Email' }}</span>
           </a>
         </div>
       </div>
@@ -115,6 +120,7 @@ import { prefersReducedMotion } from "../utils/motion";
 import { profile } from "../data/profile";
 import GithubIcon from "./GithubIcon.vue";
 import HeroBackground from "./HeroBackground.vue";
+import { useCopyText } from "../utils/useCopyText";
 
 // 註冊 GSAP TextPlugin
 gsap.registerPlugin(TextPlugin);
@@ -122,6 +128,7 @@ gsap.registerPlugin(TextPlugin);
 // 打字動畫文字（同時提供給螢幕閱讀器）
 const TITLE_TEXT = "Hello, 我是 ";
 const TITLE_NAME = profile.name;
+const { copied: emailCopied, copy: copyEmail } = useCopyText(profile.email);
 const DESC_TEXT =
   "熱愛創造優雅的網頁體驗，專注於前端開發與使用者介面設計。\n用程式碼實現創意，讓每個專案都充滿生命力。";
 

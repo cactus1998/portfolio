@@ -33,12 +33,17 @@
           <div class="mt-10 flex flex-col sm:flex-row gap-3">
             <a
               :href="`mailto:${EMAIL}`"
+              title="點擊複製 Email"
               class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white text-gray-900 font-medium hover:bg-indigo-100 transition-colors"
+              @click.prevent="copyEmail"
             >
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <svg v-if="emailCopied" class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
               </svg>
-              {{ EMAIL }}
+              <span aria-live="polite">{{ emailCopied ? '已複製 Email' : EMAIL }}</span>
             </a>
             <a
               :href="profile.github"
@@ -67,6 +72,7 @@ import { whenAppLoaded } from '../utils/appLoaded';
 import { prefersReducedMotion } from '../utils/motion';
 import { profile } from '../data/profile';
 import GithubIcon from './GithubIcon.vue';
+import { useCopyText } from '../utils/useCopyText';
 import type * as ThreeModule from 'three';
 
 type Vec3 = [number, number, number];
@@ -85,6 +91,7 @@ interface Body {
 }
 
 const EMAIL = profile.email;
+const { copied: emailCopied, copy: copyEmail } = useCopyText(EMAIL);
 const START_YEAR = 2025;
 const currentYear = new Date().getFullYear();
 const copyrightYears = currentYear > START_YEAR ? `${START_YEAR}-${currentYear}` : `${START_YEAR}`;

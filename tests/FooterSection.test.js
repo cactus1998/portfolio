@@ -60,6 +60,17 @@ describe('FooterSection 內容', () => {
     expect(link.text()).toBe('s770880qq@gmail.com')
   })
 
+  it('點擊 Email 複製到剪貼簿並顯示回饋，不開啟 mailto', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    const link = (await mountFooter()).find('a')
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true })
+    link.element.dispatchEvent(event)
+    await vi.waitFor(() => expect(link.text()).toBe('已複製 Email'))
+    expect(writeText).toHaveBeenCalledWith('s770880qq@gmail.com')
+    expect(event.defaultPrevented).toBe(true)
+  })
+
   it('提供 GitHub 連結與 #contact 錨點', async () => {
     const wrapper = await mountFooter()
     expect(wrapper.find('footer').attributes('id')).toBe('contact')
